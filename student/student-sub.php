@@ -68,14 +68,14 @@ if (isset($_POST['register'])) {
 
 				if($result1->num_rows > 0){
 					$i = 1;
-					foreach ($result1 as $row1) { ?>
+					foreach ($result1 as $row) { ?>
 						<tr style="text-align: center">
 							<td><?php echo $i; ?></td>
-							<td><?php echo $row1['Lect_Name']; ?></td>
-							<td><?php echo $row1["Sub_Name"]; ?></td>
+							<td><?php echo $row['Lect_Name']; ?></td>
+							<td><?php echo $row["Sub_Name"]; ?></td>
 							<td>
 								<?php 
-								$sub = $row1['Sub_Code'];
+								$sub = $row['Sub_Code'];
 								$sql2 = "SELECT * FROM stud_sub WHERE Stud_ID = '$stud_id' AND Sub_Code = '$sub'";
 								$result2 = $conn->query($sql2);
 								if(!$result2) die($conn->error);
@@ -83,7 +83,7 @@ if (isset($_POST['register'])) {
 								else {
 								?>
 								<form action="" method="POST">
-									<input type="text" name="sub_code" value="<?php echo $row1['Sub_Code']?>" hidden>
+									<input type="text" name="sub_code" value="<?php echo $row['Sub_Code']?>" hidden>
 									<input class="w3-button w3-light-grey" type="submit" name="register" value="Register">
 								</form>
 							
