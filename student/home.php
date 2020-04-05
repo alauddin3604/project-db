@@ -9,7 +9,7 @@ else {
 	header('location: ../index.php');
 }
 
-# SQL to list registered subject
+# SQL to list registered subjects
 $sql = "SELECT stud_sub.*, sb.Sub_Code, sb.Sub_Name, l.Lect_ID, l.Lect_Name, w.Lect_ID, w.Sub_Code
 		FROM stud_sub
 		INNER JOIN subject sb ON (stud_sub.Sub_Code=sb.Sub_Code)
