@@ -60,7 +60,7 @@ if (isset($_POST['login']))
 						}
 						else
 						{
-							header('location: student-sub.php');
+							header('location: student/home.php');
 						}
 					}
 					else
