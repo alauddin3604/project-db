@@ -54,7 +54,31 @@ if(isset($_POST['add'])) // Add new data
 	}
 }
 
-if(isset($_POST['delete'])) {// Delete admin
+if (isset($_POST['update'])) { // Update data
+	$adm_id = $_POST['adm_id'];
+	$adm_name = $_POST['adm_name'];
+
+	$sql = "UPDATE admin SET Adm_ID = '$adm_id', Adm_Name = '$adm_name' WHERE Adm_ID = '$adm_id'";
+
+	if ($conn->query($sql)) {
+		$msg = '<div class="w3-panel w3-pale-green w3-display-container">
+		<span onclick="this.parentElement.style.display=\'none\'"
+		class="w3-button w3-large w3-display-topright">&times;</span>
+		<h3>Success!</h3>
+		<p>Data is updated successfully.</p>
+		</div>';
+	}
+	else {
+		$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+		<span onclick="this.parentElement.style.display=\'none\'"
+		class="w3-button w3-large w3-display-topright">&times;</span>
+		<h3>Unsuccessful!</h3>
+		<p>'.$conn->error.'</p>
+		</div>';
+	}
+}
+
+if(isset($_POST['delete'])) {// Delete data
 	$adm_id = $_POST['adm_id'];
 
 	$sql = "SELECT a.Adm_ID, b.Adm_ID, c.Adm_ID
@@ -88,6 +112,8 @@ if(isset($_POST['delete'])) {// Delete admin
 		}
 	}	
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -109,11 +135,11 @@ if(isset($_POST['delete'])) {// Delete admin
 	<div class="w3-container">
 		<div class="w3-bar w3-light-grey">
 			<a href="home.php" class="w3-bar-item w3-button">Home</a>
-			<a href="admin-reg.php" class="w3-bar-item w3-button w3-black">Admin</a>
-			<a href="student-reg.php" class="w3-bar-item w3-button">Student</a>
-			<a href="lecturer-reg.php" class="w3-bar-item w3-button">Lecturer</a>
-			<a href="subject-reg.php" class="w3-bar-item w3-button">Subject</a>
-			<a href="workload-reg.php" class="w3-bar-item w3-button">Workload</a>
+			<a href="admin.php" class="w3-bar-item w3-button w3-black">Admin</a>
+			<a href="student.php" class="w3-bar-item w3-button">Student</a>
+			<a href="lecturer.php" class="w3-bar-item w3-button">Lecturer</a>
+			<a href="subject.php" class="w3-bar-item w3-button">Subject</a>
+			<a href="workload.php" class="w3-bar-item w3-button">Workload</a>
 			<a href="../logout.php" class="w3-bar-item w3-button w3-right">Log Out</a>
 		</div>
 		<p>Current session: <?php echo $session_id.", ".$session_name ?></p>
@@ -136,18 +162,19 @@ if(isset($_POST['delete'])) {// Delete admin
 						
 						<td><?php echo $row['Adm_ID']; ?></td>
 						<td><?php echo $row['Adm_Name']; ?></td>
-						<td><a href="student-update.php?id=<?php echo $row["Adm_ID"]; ?>"><button>Update</button></a></td>
+						<td><button onclick="onUpdate(<?php echo $row['Adm_ID']; ?>, '<?php echo $row['Adm_Name']; ?>')">Update</button></td>
 						<?php if ($row['Adm_ID'] != $session_id) { ?>
-							<form action="" method="POST">
-								<input type="text" name="adm_id" value="<?php echo $row["Adm_ID"]; ?>" hidden />
-								<td><button type="submit" name="delete">Delete</button></td>
-							</form>				
-							<?php } else { echo "<td></td>"; }?>
+						<form action="" method="POST">
+							<input type="text" name="adm_id" value="<?php echo $row['Adm_ID']; ?>" hidden />
+							<td><button type="submit" name="delete">Delete</button></td>
+						</form>
+						<?php } else { echo "<td></td>"; }?>
 						</tr>
 						<?php
 					}
 				}
 			?>
+						
 			<tr>
 				<form action="" method="POST">
 					<td><input class="w3-input" type="text" name="adm_id" placeholder="Admin ID" /></td>
@@ -156,8 +183,38 @@ if(isset($_POST['delete'])) {// Delete admin
 					<td></td>
 				</form>
 			</tr>
+			
 		</table>
 		<p><?php echo $msg; ?></p>
+			</div>
+			<div id="id01" class="w3-modal">
+		<div class="w3-modal-content w3-card-4" style="max-width:600px">
+  
+		<div class="w3-center"><br>
+			<span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
+		</div>
+		<form class="w3-container" action="" method="POST">
+			<div class="w3-section">
+			<label><b>Admin ID</b></label>
+			<input class="w3-input w3-border w3-margin-bottom" type="text" id="adm_id" name="adm_id" required>
+			<label><b>Admin Name</b></label>
+			<input class="w3-input w3-border" type="text" id="adm_name" name="adm_name" required>
+			<button class="w3-button w3-block w3-dark-grey w3-section w3-padding" type="submit" name="update">Save</button>
+			</div>
+		</form>
+
+		<div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+			<button onclick="document.getElementById('id01').style.display='none'" type="button" class="w3-button w3-red">Cancel</button>
+		</div>
+
+		</div>
 	</div>
+	<script>
+		function onUpdate(adm_id, adm_name) {
+			document.getElementById('id01').style.display='block';
+			document.getElementById("adm_id").value = adm_id;
+			document.getElementById("adm_name").value = adm_name;
+		}
+	</script>
 </body>
 </html>

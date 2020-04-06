@@ -22,7 +22,7 @@ if (isset($_POST['login']))
 					$row = $result->fetch_assoc();
 					
 					if (password_verify($pass, $row['Adm_Pass'])) {
-						$_SESSION['adm_id'] = $row['Adm_ID'];
+						$_SESSION['session_id'] = $id;
 						if ($row['Adm_Log'] == false) {
 							$conn->query("UPDATE admin SET Adm_Log = 1 WHERE Adm_ID = '$id'");
 							

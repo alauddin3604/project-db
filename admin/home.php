@@ -2,12 +2,12 @@
 require '../connection.php';
 session_start();
 
-if (isset($_SESSION['adm_id']))
-	$adm_id = $_SESSION['adm_id'];
+if (isset($_SESSION['session_id']))
+	$session_id = $_SESSION['session_id'];
 else
 	header('location: ../index.php');
 
-$sql = "SELECT Adm_Name FROM admin WHERE Adm_ID = $adm_id";
+$sql = "SELECT Adm_Name FROM admin WHERE Adm_ID = $session_id";
 
 if ($result = $conn->query($sql)) {
 	$row = $result->fetch_assoc();
@@ -33,12 +33,13 @@ if ($result = $conn->query($sql)) {
 	
 	<br>
 	<div class="align-center">
-		<p>Current session: <?php echo $adm_id . ", " . ucwords(strtolower($row['Adm_Name'])); ?></p>
+		<p>Current session: <?php echo $session_id . ", " . ucwords(strtolower($row['Adm_Name'])); ?></p>
 		<p>What you want to do?</p>
-		<a href="admin-reg.php"><button>Register Admin</button></a>
-		<a href="student-reg.php"><button>Register Student</button></a>
-		<a href="lecturer-reg.php"><button>Register Lecturer</button></a>
-		<a href="subject-reg.php"><button>Register Subject</button></a><br>
+		<a href="admin.php"><button>Register Admin</button></a>
+		<a href="student.php"><button>Register Student</button></a>
+		<a href="lecturer.php"><button>Register Lecturer</button></a>
+		<a href="subject.php"><button>Register Subject</button></a>
+		<a href="workload.php"><button>Register Workload</button></a><br>
 		<p><a href="../logout.php"><button>Logout</button></a></p>
 	</div>
 	

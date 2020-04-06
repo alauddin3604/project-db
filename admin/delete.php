@@ -1,10 +1,10 @@
 <?php
 require '../connection.php';
 
-if(isset($_GET['adm_id']))
+if(isset($_POST['del-admin'])) // Delete admin
 {
 	
-	$adm_id = $_GET['adm_id'];
+	$adm_id = $_POST['adm_id'];
 
 		$sql = "SELECT a.Adm_ID, b.Adm_ID, c.Adm_ID
 				FROM adm_lect a, adm_stud b, adm_sub c
@@ -22,7 +22,14 @@ if(isset($_GET['adm_id']))
 					</script>";
 			}
 			else {
-				echo "delete";
+				$sql = "DELETE FROM admin WHERE Adm_ID = '$adm_id'";
+
+				if ($conn->query($sql)) {
+					echo "<script>
+						alert('Data is deleted successfully.');
+						window.location.href = document.referrer;
+					</script>";
+				}
 			}
 		}
 	
