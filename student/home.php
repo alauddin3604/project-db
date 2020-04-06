@@ -4,6 +4,14 @@ session_start();
 
 if (isset($_SESSION['stud_id'])) {
 	$stud_id = $_SESSION['stud_id'];
+	$q = "SELECT Stud_ID, Stud_Name FROM student WHERE Stud_ID = '$stud_id'";
+	if(!$result = $conn->query($q)) {
+		echo $conn->error;
+	}
+	else {
+		$row = $result->fetch_assoc();
+		$stud_name = $row['Stud_Name'];
+	}
 }
 else {
 	header('location: ../index.php');
@@ -29,13 +37,11 @@ if(!$result = $conn->query($sql)) die($conn->error);
 </head>
 <body>
 	<div class="w3-container">
-		<div class="w3-bar w3-light-grey">
-			<a href="home.php" class="w3-bar-item w3-button w3-black">Subject</a>
-			
+		<div class="w3-bar">
+			<a href="student-sub.php" class="w3-bar-item w3-button w3-light-grey">Register Subject</a>
 			<a href="../logout.php" class="w3-bar-item w3-button w3-right">Log Out</a>
 		</div>
-		<br>
-		<a href="student-sub.php"><button>Register subject</button></a>
+		<p>Current Session: <?php echo $stud_id; ?></p>
 		<h4>Subject list</h4>
 		<table class="w3-table w3-bordered">
 		<tr>

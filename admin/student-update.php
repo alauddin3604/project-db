@@ -9,8 +9,8 @@ if (isset($_SESSION['adm_id']))
 else 
 	header('location: ../index.php');
 
-if(isset($_GET['id'])) {
-	$id = $_GET['id'];
+if(isset($_POST['update'])) {
+	$id = $_POST['stud_id'];
 	$sql = "SELECT * FROM student WHERE Stud_ID = '$id'";
 }
 

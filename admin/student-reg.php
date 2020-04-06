@@ -108,9 +108,8 @@ if (isset($_GET['button'])) {
 					
 					if($result = $conn->query($sql)){
 						if($result->num_rows > 0) {
-							while ($row = $result->fetch_array(MYSQLI_ASSOC)) { ?>
-								<tr>
-							
+							while ($row = $result->fetch_assoc()) { ?>
+								<tr>					
 								<td><?php echo $row['Stud_ID']; ?></td>
 								<td><?php echo $row['Stud_Name']; ?></td>
 								<td><?php echo $row['Stud_Email']; ?></td>
@@ -119,9 +118,14 @@ if (isset($_GET['button'])) {
 									<?php $date = $row['Mod_On'];
 									echo date("j/n/Y g:i:s A", strtotime($date)); ?>
 								</td>
-								<td><a href="student-update.php?id=<?php echo $row["Stud_ID"]; ?>"><button>Update</button></a></td>
-								<td><a href="delete.php?stud_id=<?php echo $row["Stud_ID"]; ?>"><button>Delete</button></a></td>
-							
+								<form action="student-update.php" method="post">
+									<input type="text" name="stud_id" value="<?php echo $row["Stud_ID"]; ?>" hidden />
+									<td><button type="submit" name="update">Update</button></td>
+								</form>
+								<form action="delete.php" method="POST">
+									<input type="text" name="stud_id" value="<?php echo $row["Stud_ID"]; ?>" hidden />
+									<td><button type="submit" name="delete">Delete</button></td>	
+								</form>
 								</tr>
 								<?php
 							}

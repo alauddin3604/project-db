@@ -5,6 +5,14 @@ $msg = "";
 
 if (isset($_SESSION['stud_id'])) {
 	$stud_id = $_SESSION['stud_id'];
+	$q = "SELECT Stud_ID, Stud_Name FROM student WHERE Stud_ID = '$stud_id'";
+	if(!$result = $conn->query($q)) {
+		echo $conn->error;
+	}
+	else {
+		$row = $result->fetch_assoc();
+		$stud_name = $row['Stud_Name'];
+	}
 }
 else {
 	header('location: ../index.php');
@@ -44,12 +52,10 @@ if (isset($_POST['register'])) {
 <body>
 	<div class="w3-container">
 		<div class="w3-bar w3-light-grey">
-			<a href="home.php" class="w3-bar-item w3-button w3-black">Subject</a>
-			
+			<a href="home.php" class="w3-bar-item w3-button w3-light-grey">Subject List</a>
 			<a href="../logout.php" class="w3-bar-item w3-button w3-right">Log Out</a>
 		</div>
-		<br>
-		<a href="home.php"><button>Subject list</button></a>
+		<p>Current Session: <?php echo $stud_id; ?></p>
 		<h4>Register subject below</h4>
 		<table class="w3-table w3-bordered">
 			<tr>
@@ -61,7 +67,8 @@ if (isset($_POST['register'])) {
 			<?php
 				$sql1 = "SELECT workload.*, l.Lect_ID, l.Lect_Name, s.Sub_Code, s.Sub_Name FROM workload
 						INNER JOIN lecturer AS l ON (workload.Lect_ID = l.Lect_ID)
-						INNER JOIN subject AS s ON (workload.Sub_Code = s.Sub_Code)";
+						INNER JOIN subject AS s ON (workload.Sub_Code = s.Sub_Code)
+						ORDER BY s.Sub_Name";
 				
 
 				$result1 = $conn->query($sql1);
