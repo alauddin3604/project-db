@@ -2,8 +2,8 @@
 require 'connection.php';
 session_start();
 
-if (isset($_SESSION['adm_id']))
-	$welcome_id = $_SESSION['adm_id'];
+if (isset($_SESSION['session_id']))
+	$welcome_id = $_SESSION['session_id'];
 else if (isset($_SESSION['stud_id']))
 	$welcome_id = $_SESSION['stud_id'];
 else if (isset($_SESSION['lect_id']))
@@ -48,9 +48,9 @@ if(isset($_POST['update']))
 			}
 		}
 	}
-	else if (isset($_SESSION['adm_id'])) {
+	else if (isset($_SESSION['session_id'])) {
 		
-		$adm_id = $_SESSION['adm_id'];
+		$adm_id = $_SESSION['session_id'];
 
 		if(trim($_POST['new_pass']) == trim($_POST['confirm_pass']))
 		{
@@ -86,19 +86,21 @@ if(isset($_POST['update']))
 	</style>
 </head>
 <body>
-	<h3>Update Password</h3>
-	<p>Welcome <?php echo $welcome_id ?>, please update your password before proceed.</p>
-	<form action="" method="post">
-		<label for="new_pass">New Password</label>
-		<input type="password" name="new_pass" id="new_pass">
-		<br>
-		<br>
-		<label for="confirm_pass">Confirm Password</label>
-		<input type="password" name="confirm_pass" id="confirm_pass">
-		<br>
-		<br>
-		<label for="submit"></label>
-		<input type="submit" name="update" id="submit" value="Update">
-	</form>
+	<div class="w3-container">
+		<h3>Update Password</h3>
+		<p>Welcome <?php echo $welcome_id ?>, please update your password before proceed.</p>
+		<form action="" method="post">
+			<label for="new_pass">New Password</label>
+			<input type="password" name="new_pass" id="new_pass">
+			<br>
+			<br>
+			<label for="confirm_pass">Confirm Password</label>
+			<input type="password" name="confirm_pass" id="confirm_pass">
+			<br>
+			<br>
+			<label for="submit"></label>
+			<input type="submit" name="update" id="submit" value="Update">
+		</form>
+	</div>	
 </body>
 </html>
