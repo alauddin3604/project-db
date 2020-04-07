@@ -32,7 +32,7 @@ if (isset($_POST['add'])) { // Add new data
 
 	if ($conn->query($sql1)) {
 		if($conn->query(($sql2))) {
-			$msg = '<div class="w3-panel w3-pale-green w3-display-container">
+			$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
 			<span onclick="this.parentElement.style.display=\'none\'"
 			class="w3-button w3-large w3-display-topright">&times;</span>
 			<h3>Success!</h3>
@@ -44,7 +44,12 @@ if (isset($_POST['add'])) { // Add new data
 		}
 	 }
 	 else {
-		echo $conn->error;
+		$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
+		<span onclick="this.parentElement.style.display=\'none\'"
+		class="w3-button w3-large w3-display-topright">&times;</span>
+		<h3>Error!</h3>
+		<p>The ID has already registered!</p>
+		</div>';
 	 }
 }
 
@@ -70,7 +75,7 @@ if(isset($_POST['update'])) { // Update data
 	}
 	else {
 		if ($conn->query($q2)) {
-			$msg = '<div class="w3-panel w3-pale-green w3-display-container">
+			$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
 			<span onclick="this.parentElement.style.display=\'none\'"
 			class="w3-button w3-large w3-display-topright">&times;</span>
 			<h3>Success!</h3>
@@ -78,7 +83,7 @@ if(isset($_POST['update'])) { // Update data
 			</div>';
 		}
 		else {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
 			<span onclick="this.parentElement.style.display=\'none\'"
 			class="w3-button w3-large w3-display-topright">&times;</span>
 			<h3>Unsuccessful!</h3>
@@ -95,7 +100,7 @@ if (isset($_POST['delete'])) { // Delete student data
 
 	if ($result = $conn->query($sql)) {
 		if ($result->num_rows > 0) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
 			<span onclick="this.parentElement.style.display=\'none\'"
 			class="w3-button w3-large w3-display-topright">&times;</span>
 			<h3>Unsuccessful!</h3>
@@ -106,7 +111,7 @@ if (isset($_POST['delete'])) { // Delete student data
 			$sql = "DELETE FROM student WHERE Stud_ID = '$stud_id'";
 
 			if ($conn->query($sql)) {
-				$msg = '<div class="w3-panel w3-pale-green w3-display-container">
+				$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
 				<span onclick="this.parentElement.style.display=\'none\'"
 				class="w3-button w3-large w3-display-topright">&times;</span>
 				<h3>Success!</h3>
@@ -114,7 +119,7 @@ if (isset($_POST['delete'])) { // Delete student data
 				</div>';
 			}
 			else {
-				$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+				$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
 				<span onclick="this.parentElement.style.display=\'none\'"
 				class="w3-button w3-large w3-display-topright">&times;</span>
 				<h3>Unsuccessful!</h3>
