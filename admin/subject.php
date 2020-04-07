@@ -10,7 +10,7 @@ else
 	header('location: ../index.php');
 
 $q = "SELECT Adm_ID, Adm_Name FROM admin WHERE Adm_ID = '$session_id'";
-if(!$result = $conn->query($q)) {
+if (!$result = $conn->query($q)) {
 	echo $conn->error;
 }
 else {
@@ -18,26 +18,55 @@ else {
 	$session_name = $row['Adm_Name'];
 }
 
-if(isset($_POST['add'])) // Add new data
-{
+if (isset($_POST['add'])) {// Add new data
 	$sub_code = $_POST['sub_code'];
-	$sub_name = $_POST['sub_name'];
 
-	$date = date("Y-m-d H:i:s");
+	$sql = "SELECT * FROM subject WHERE Sub_Code = '$sub_code'";
 
-	$sql1 = "INSERT INTO subject VALUES('$sub_code', '$sub_name')";
-	$sql2 = "INSERT INTO adm_sub VALUES('$adm_id', '$sub_code', '$date')";
-	if($conn->query($sql1))
-	{
-		if(!$conn->query($sql2))
-			echo "Error: " . $sql2 . ": " . $conn->error;
-		else
-			echo "<script>alert('New data is successfully recorded');</script>";
-	}
-	else
-	{
-		echo "Error: " . $sql1 . ": " . $conn->error;
-	}
+	if ($result = $conn->query($sql)) {
+		if ($result->num_rows > 0) {
+			$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+			<span onclick="this.parentElement.style.display=\'none\'"
+			class="w3-button w3-large w3-display-topright">&times;</span>
+			<h3>Unsuccessful!</h3>
+			<p>The subject code has already registered!</p>
+			</div>';
+		}
+		else {
+			$sub_name = $_POST['sub_name'];
+
+			$date = date("Y-m-d H:i:s");
+
+			$sql1 = "INSERT INTO subject VALUES('$sub_code', '$sub_name')";
+			$sql2 = "INSERT INTO adm_sub VALUES('$session_id', '$sub_code', '$date')";
+			if($conn->query($sql1)) {
+				if($conn->query($sql2)) {
+					$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
+					<span onclick="this.parentElement.style.display=\'none\'"
+					class="w3-button w3-large w3-display-topright">&times;</span>
+					<h3>Success!</h3>
+					<p>The subject is successfully registered!</p>
+					</div>';
+				}
+				else {
+					$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
+					<span onclick="this.parentElement.style.display=\'none\'"
+					class="w3-button w3-large w3-display-topright">&times;</span>
+					<h3>Unsuccessful!</h3>
+					<p>The lecturer ID has already registered!</p>
+					</div>';
+				}
+			}
+			else {
+				$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+				<span onclick="this.parentElement.style.display=\'none\'"
+				class="w3-button w3-large w3-display-topright">&times;</span>
+				<h3>Unsuccessful!</h3>
+				<p>The lecturer ID has already registered!</p>
+				</div>';
+			}
+		}
+	}	
 }
 
 if(isset($_POST['update'])) { // Update data
