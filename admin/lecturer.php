@@ -30,7 +30,7 @@ if(isset($_POST['add']))
 
 	if ($res = $conn->query($sql)) {
 		if ($res->num_rows > 0) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
 			<span onclick="this.parentElement.style.display=\'none\'"
 			class="w3-button w3-large w3-display-topright">&times;</span>
 			<h3>Unsuccessful!</h3>
@@ -42,20 +42,26 @@ if(isset($_POST['add']))
 			$sql2 = "INSERT INTO adm_lect VALUES('$session_id', '$lect_id', '$date')";
 			if($conn->query($sql1)) {
 				if($conn->query($sql2)) {
-					$msg = '<div class="w3-panel w3-pale-green w3-border">
+					$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
+					<span onclick="this.parentElement.style.display=\'none\'"
+					class="w3-button w3-large w3-display-topright">&times;</span>
 					<h3>Success!</h3>
 					<p>New data is successfully recorded.</p>
 					</div>';
 				}
 				else {
-					$msg = '<div class="w3-panel w3-pale-red w3-border">
+					$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
+					<span onclick="this.parentElement.style.display=\'none\'"
+					class="w3-button w3-large w3-display-topright">&times;</span>
 					<h3>Unsuccessful!</h3>
 					<p>Error: '.$conn->error.'</p>
 					</div>';
 				}
 			}
 			else {
-				$msg = '<div class="w3-panel w3-pale-red w3-border">
+				$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
+				<span onclick="this.parentElement.style.display=\'none\'"
+				class="w3-button w3-large w3-display-topright">&times;</span>
 				<h3>Unsuccessful!</h3>
 				<p>Error: '.$conn->error.'</p>
 				</div>';;
@@ -79,7 +85,7 @@ if(isset($_POST['update'])) { // Update data
 			WHERE Lect_ID = '$lect_id'";
 
 	if(!$result = $conn->query($q1)) {
-		$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+		$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
 		<span onclick="this.parentElement.style.display=\'none\'"
 		class="w3-button w3-large w3-display-topright">&times;</span>
 		<h3>Unsuccessful!</h3>
@@ -88,7 +94,7 @@ if(isset($_POST['update'])) { // Update data
 	}
 	else {
 		if (!$conn->query($q2)) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
 			<span onclick="this.parentElement.style.display=\'none\'"
 			class="w3-button w3-large w3-display-topright">&times;</span>
 			<h3>Unsuccessful!</h3>
@@ -96,7 +102,7 @@ if(isset($_POST['update'])) { // Update data
 			</div>';
 		}
 		else {
-			$msg = '<div class="w3-panel w3-pale-green w3-display-container">
+			$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
 			<span onclick="this.parentElement.style.display=\'none\'"
 			class="w3-button w3-large w3-display-topright">&times;</span>
 			<h3>Success!</h3>
@@ -114,7 +120,7 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 
 	if ($result = $conn->query($sql)) {
 		if ($result->num_rows > 0) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
 			<span onclick="this.parentElement.style.display=\'none\'"
 			class="w3-button w3-large w3-display-topright">&times;</span>
 			<h3>Unsuccessful!</h3>
@@ -125,7 +131,7 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 			$sql = "DELETE FROM lecturer WHERE Lect_ID = '$lect_id'";
 			
 			if ($conn->query($sql)) {
-				$msg = '<div class="w3-panel w3-pale-green w3-display-container">
+				$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
 				<span onclick="this.parentElement.style.display=\'none\'"
 				class="w3-button w3-large w3-display-topright">&times;</span>
 				<h3>Success!</h3>
@@ -133,7 +139,7 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 				</div>';
 			}
 			else {
-				$msg = '<div class="w3-panel w3-pale-red w3-display-container">
+				$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
 				<span onclick="this.parentElement.style.display=\'none\'"
 				class="w3-button w3-large w3-display-topright">&times;</span>
 				<h3>Unsuccessful!</h3>
@@ -217,10 +223,11 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 		</table>
 		<p><?php echo $msg; ?></p>
 	</div>
-	<div id="id01" class="w3-modal">
+	<!-- Update popup box -->
+	<div id="onUpdate" class="w3-modal">
 		<div class="w3-modal-content w3-card-4" style="max-width:600px">
   			<div class="w3-center"><br>
-				<span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
+				<span onclick="document.getElementById('onUpdate').style.display='none'" class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
 			</div>
 			<form class="w3-container" action="" method="POST">
 				<div class="w3-section">
@@ -232,7 +239,7 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 				</div>
 			</form>
 			<div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
-				<button onclick="document.getElementById('id01').style.display='none'" type="button" class="w3-button w3-red">Cancel</button>
+				<button onclick="document.getElementById('onUpdate').style.display='none'" type="button" class="w3-button w3-red w3-right w3-padding">Cancel</button>
 			</div>
 		</div>
 	</div>
@@ -245,9 +252,9 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 			<form class="w3-container" action="" method="POST">
 				<div class="w3-section">
 					<p>Are you sure you want to delete this data? </p>
-					<label><b>Student ID</b></label>
+					<label><b>Lecturer ID</b></label>
 					<input class="w3-input w3-border w3-margin-bottom" type="text" id="del-lect_id" name="lect_id" readonly>
-					<label><b>Student Name</b></label>
+					<label><b>Lecturer Name</b></label>
 					<input class="w3-input w3-border" type="text" id="del-lect_name" name="lect_name" readonly>
 				</div>
 			
@@ -255,7 +262,7 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 					<button onclick="document.getElementById('onDelete').style.display='none'" type="button" class="w3-button w3-red w3-right w3-padding">Cancel</button>
 					<button class="w3-button w3-green w3-right w3-padding" type="submit" name="delete">Confirm</button>
 				</div>
-		</form>
+			</form>
 		</div>
 	</div>
 	<script>
