@@ -20,12 +20,12 @@ else {
 # SQL to list registered subjects
 $sql = "SELECT stud_sub.*, sb.Sub_Code, sb.Sub_Name, l.Lect_ID, l.Lect_Name, w.Lect_ID, w.Sub_Code
 		FROM stud_sub
-		INNER JOIN subject sb ON (stud_sub.Sub_Code=sb.Sub_Code)
-		INNER JOIN workload w ON (w.Sub_Code=sb.Sub_Code)
+		INNER JOIN workload w ON (stud_sub.Sub_Code=w.Sub_Code) AND (stud_sub.Lect_ID=w.Lect_ID)
+		INNER JOIN subject sb ON (w.Sub_Code=sb.Sub_Code)
 		INNER JOIN lecturer l ON (w.Lect_ID=l.Lect_ID)
 		WHERE stud_sub.Stud_ID = '$stud_id'";
 
-if(!$result = $conn->query($sql)) die($conn->error);
+if(!$result = $conn->query($sql)) die($conn->error); 
 ?>
 <!DOCTYPE html>
 <html lang="en">

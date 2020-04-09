@@ -20,8 +20,9 @@ else {
 
 if (isset($_POST['register'])) {
 	$sub_code = $_POST['sub_code'];
+	$lect_id = $_POST['lect_id'];
 
-	$sql = "INSERT INTO stud_sub VALUES ('$stud_id', '$sub_code')";
+	$sql = "INSERT INTO stud_sub VALUES ('$stud_id', '$sub_code', '$lect_id')";
 
 	if (!$conn->query($sql)) {
 		$msg = '<div class="w3-panel w3-pale-red w3-display-container">
@@ -91,6 +92,7 @@ if (isset($_POST['register'])) {
 								?>
 								<form action="" method="POST">
 									<input type="text" name="sub_code" value="<?php echo $row['Sub_Code']?>" hidden>
+									<input type="text" name="lect_id" value="<?php echo $row['Lect_ID']?>" hidden>
 									<input class="w3-button w3-light-grey" type="submit" name="register" value="Register">
 								</form>
 							
