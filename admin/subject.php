@@ -2,150 +2,136 @@
 require '../connection.php';
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
-$msg = "";
+$msg = '';
 
-if (isset($_SESSION['session_id']))
-	$session_id = $_SESSION['session_id'];
+if (isset($_SESSION['admin_id']))
+	$session_id = $_SESSION['admin_id'];
 else
 	header('location: ../index.php');
 
-$q = "SELECT Adm_ID, Adm_Name FROM admin WHERE Adm_ID = '$session_id'";
-if (!$result = $conn->query($q)) {
+$q = 'SELECT admin_id, admin_name FROM admins WHERE admin_id=?';
+$stmt = $conn->prepare($q);
+$stmt->bind_param('i', $session_id);
+if (!$stmt->execute())
+{
 	echo $conn->error;
 }
-else {
-	$row = $result->fetch_assoc();
-	$session_name = $row['Adm_Name'];
+else
+{
+	$row = $stmt->get_result()->fetch_assoc();
+	$session_name = $row['admin_name'];
 }
 
-if (isset($_POST['add'])) {// Add new data
-	$sub_code = $_POST['sub_code'];
+if (isset($_POST['add'])) // Add new data
+{
+	$sub_code = $conn->real_escape_string($_POST['sub_code']);
 
-	$sql = "SELECT * FROM subject WHERE Sub_Code = '$sub_code'";
+	$sql = 'SELECT * FROM subjects WHERE subject_code=?';
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param('s', $sub_code);
+	$stmt->execute();
+	$result = $stmt->get_result();
 
-	if ($result = $conn->query($sql)) {
-		if ($result->num_rows > 0) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container">
-			<span onclick="this.parentElement.style.display=\'none\'"
-			class="w3-button w3-large w3-display-topright">&times;</span>
-			<h3>Unsuccessful!</h3>
-			<p>The subject code has already registered!</p>
-			</div>';
+	if ($result->num_rows > 0)
+	{
+		$msg = '<p style="color: red;">*ERROR! Duplicate subject code!</p>';
+	}
+	else
+	{
+		$sub_name = $_POST['sub_name'];
+
+		$date = date('Y-m-d H:i:s');
+
+		$sql1 = 'INSERT INTO subjects VALUES(?, ?)';
+		$stmt = $conn->prepare($sql1);
+		$stmt->bind_param('ss', $sub_code, $sub_name);
+		
+		if ($stmt->execute())
+		{
+			$sql2 = "INSERT INTO adm_sub VALUES(?,?,?)";
+			$stmt = $conn->prepare($sql2);
+			$stmt->bind_param('iss', $session_id, $sub_code, $date);
+			if ($stmt->execute())
+			{
+				$msg = '<p style="color: green;">The subject is successfully registered!</p>';
+			}
+			else
+			{
+				$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
+			}
 		}
-		else {
-			$sub_name = $_POST['sub_name'];
-
-			$date = date("Y-m-d H:i:s");
-
-			$sql1 = "INSERT INTO subject VALUES('$sub_code', '$sub_name')";
-			$sql2 = "INSERT INTO adm_sub VALUES('$session_id', '$sub_code', '$date')";
-			if($conn->query($sql1)) {
-				if($conn->query($sql2)) {
-					$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
-					<span onclick="this.parentElement.style.display=\'none\'"
-					class="w3-button w3-large w3-display-topright">&times;</span>
-					<h3>Success!</h3>
-					<p>The subject is successfully registered!</p>
-					</div>';
-				}
-				else {
-					$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-					<span onclick="this.parentElement.style.display=\'none\'"
-					class="w3-button w3-large w3-display-topright">&times;</span>
-					<h3>Unsuccessful!</h3>
-					<p>The lecturer ID has already registered!</p>
-					</div>';
-				}
-			}
-			else {
-				$msg = '<div class="w3-panel w3-pale-red w3-display-container">
-				<span onclick="this.parentElement.style.display=\'none\'"
-				class="w3-button w3-large w3-display-topright">&times;</span>
-				<h3>Unsuccessful!</h3>
-				<p>The lecturer ID has already registered!</p>
-				</div>';
-			}
+		else
+		{
+			$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
 		}
 	}	
 }
 
-if(isset($_POST['update'])) { // Update data
-	$sub_code = $_POST['sub_code'];
-	$sub_name = $_POST['sub_name'];
-	$curr_sub_code = $_POST['curr_sub_code'];
+if(isset($_POST['update'])) // Update data
+{
+	$sub_code = $conn->real_escape_string($_POST['sub_code']);
+	$sub_name = $conn->real_escape_string($_POST['sub_name']);
+	$curr_sub_code = htmlspecialchars($_POST['curr_sub_code']);
 
 	$mod_on = date('Y-m-d H:i:s');
 
-	$q1 = "UPDATE subject
-			SET Sub_Code = '$sub_code', Sub_Name = '$sub_name'
-			WHERE Sub_Code = '$curr_sub_code'";
+	$q1 = 'UPDATE subjects
+			SET subject_code=?, subject_name=?
+			WHERE subject_code=?';
 
-	$q2 = "UPDATE adm_sub 
-			SET Adm_ID = '$session_id', Mod_On = '$mod_on'
-			WHERE Sub_Code = '$sub_code'";
+	$q2 = 'UPDATE adm_sub 
+			SET admin_id=?, modified_on=?
+			WHERE subject_code=?';
 
-	if(!$conn->query($q1)) {
-		$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-		<span onclick="this.parentElement.style.display=\'none\'"
-		class="w3-button w3-large w3-display-topright">&times;</span>
-		<h3>Unsuccessful!</h3>
-		<p>'.$conn->error.'</p>
-		</div>';
+	$stmt = $conn->prepare($q1);
+	$stmt->bind_param('sss', $sub_code, $sub_name, $curr_sub_code);
+	
+	if(!$stmt->execute())
+	{
+		$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
 	}
-	else {
-		if ($conn->query($q2)) {
-			$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
-			<span onclick="this.parentElement.style.display=\'none\'"
-			class="w3-button w3-large w3-display-topright">&times;</span>
-			<h3>Success!</h3>
-			<p>Data is updated successfully.</p>
-			</div>';
+	else
+	{
+		$stmt = $conn->prepare($q2);
+		$stmt->bind_param('iss', $session_id, $mod_on, $sub_code);
+		if ($stmt->execute())
+		{
+			$msg = '<p style="color: green;">Data is updated successfully.</p>';
 		}
-		else {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-			<span onclick="this.parentElement.style.display=\'none\'"
-			class="w3-button w3-large w3-display-topright">&times;</span>
-			<h3>Unsuccessful!</h3>
-			<p>'.$conn->error.'</p>
-			</div>';
-		}
-		
+		else
+		{
+			$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
+		}	
 	}
 }
 
-if (isset($_POST['delete'])) { // Delete data
-	$sub_code = $_POST['sub_code'];
+if (isset($_POST['delete'])) // Delete data
+{
+	$subject_code = $conn->real_escape_string($_POST['sub_code']);
 
-	$sql = "SELECT Sub_Code FROM workload 
-			WHERE Sub_Code = '$sub_code'";
-
-	if ($result = $conn->query($sql)) {
-		if ($result->num_rows > 0) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-			<span onclick="this.parentElement.style.display=\'none\'"
-			class="w3-button w3-large w3-display-topright">&times;</span>
-			<h3>Unsuccessful!</h3>
-			<p>This subject has been assigned to lecturer(s)</p>
-			</div>';
+	$sql = 'SELECT subject_code FROM workloads WHERE subject_code = ?';
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param('s', $subject_code);
+	if ($stmt->execute())
+	{
+		$result = $stmt->get_result();
+		if ($result->num_rows > 0)
+		{
+			$msg = '<p style="color: red;">*ERROR! The subject has assigned to lecturer(s).</p>';
 		}
-		else {
-			$sql = "DELETE FROM subject WHERE Sub_Code = '$sub_code'";
+		else
+		{
+			$sql = 'DELETE FROM subjects WHERE subject_code = ?';
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param('s', $subject_code);
 
-			if ($conn->query($sql)) {
-				$msg = '<div class="w3-panel w3-pale-green w3-display-container">
-				<span onclick="this.parentElement.style.display=\'none\'"
-				class="w3-button w3-large w3-display-topright">&times;</span>
-				<h3>Success!</h3>
-				<p>Data is deleted successfully.</p>
-				</div>';
+			if ($stmt->execute())
+			{
+				$msg = '<p style="color: green;">Data is deleted successfully.</p>';
 			}
-			else {
-				$msg = '<div class="w3-panel w3-pale-red w3-display-container">
-				<span onclick="this.parentElement.style.display=\'none\'"
-				class="w3-button w3-large w3-display-topright">&times;</span>
-				<h3>Unsuccessful!</h3>
-				<p>'.$conn->error.'</p>
-				</div>';
+			else
+			{
+				$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
 			}
 		}
 	}
@@ -184,23 +170,23 @@ if (isset($_POST['delete'])) { // Delete data
 				<th>Delete</th>
 			</tr>
 			<?php
-				$sql = "SELECT s.Sub_Code, s.Sub_Name, a.Adm_ID, a.Adm_Name, Mod_On
+				$sql = 'SELECT s.subject_code, s.subject_name, a.admin_id, a.admin_name, modified_on
 				FROM adm_sub
-				INNER JOIN admin as a ON (adm_sub.Adm_ID=a.Adm_ID)
-				INNER JOIN subject as s ON (adm_sub.Sub_Code=s.Sub_Code)
-				ORDER BY s.Sub_Code";
+				INNER JOIN admins as a ON (adm_sub.admin_id = a.admin_id)
+				INNER JOIN subjects as s ON (adm_sub.subject_code = s.subject_code)
+				ORDER BY s.subject_code';
 				if($result = $conn->query($sql))
 				{
 					if($result->num_rows > 0){
 						while ($row = $result->fetch_assoc()) { ?>
 							<tr style="text-align: center">
-							<td><?php echo $row['Sub_Code']; ?></td>
-							<td><?php echo $row['Sub_Name']; ?></td>
-							<td><?php echo $row['Adm_Name']; ?></td>
-							<td><?php $date = $row['Mod_On'];
+							<td><?php echo $row['subject_code']; ?></td>
+							<td><?php echo $row['subject_name']; ?></td>
+							<td><?php echo $row['admin_name']; ?></td>
+							<td><?php $date = $row['modified_on'];
 							echo date("j/n/Y g:i:s A", strtotime($date)); ?></td>
-							<td><button onclick="onUpdate('<?php echo $row['Sub_Code']; ?>', '<?php echo $row['Sub_Name']; ?>')">Update</button></td>
-							<td><button onclick="onDelete('<?php echo $row['Sub_Code']; ?>', '<?php echo $row['Sub_Name']; ?>')">Delete</button></td>
+							<td><button onclick="onUpdate('<?php echo $row['subject_code']; ?>', '<?php echo $row['subject_name']; ?>')">Update</button></td>
+							<td><button onclick="onDelete('<?php echo $row['subject_code']; ?>', '<?php echo $row['subject_name']; ?>')">Delete</button></td>
 							</tr>
 							<?php
 						}

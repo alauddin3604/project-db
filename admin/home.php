@@ -1,18 +1,21 @@
 <?php
-require '../connection.php';
 session_start();
+require '../connection.php';
 
-if (isset($_SESSION['session_id']))
-	$session_id = $_SESSION['session_id'];
+if (isset($_SESSION['admin_id']))
+	$session_id = $_SESSION['admin_id'];
 else
 	header('location: ../index.php');
 
-$sql = "SELECT Adm_Name FROM admin WHERE Adm_ID = $session_id";
+$sql = 'SELECT admin_name FROM admins WHERE admin_id = ?';
+$stmt = $conn->prepare($sql);
+$stmt->bind_param('i', $session_id);
 
-if ($result = $conn->query($sql)) {
+if ($stmt->execute())
+{
+	$result = $stmt->get_result();
 	$row = $result->fetch_assoc();
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -33,7 +36,7 @@ if ($result = $conn->query($sql)) {
 	
 	<br>
 	<div class="align-center">
-		<p>Current session: <?php echo $session_id . ", " . ucwords(strtolower($row['Adm_Name'])); ?></p>
+		<p>Current session: <?php echo $session_id . ", " . ucwords(strtolower($row['admin_name'])); ?></p>
 		<p>What you want to do?</p>
 		<a href="admin.php"><button>Register Admin</button></a>
 		<a href="student.php"><button>Register Student</button></a>

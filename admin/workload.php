@@ -2,117 +2,125 @@
 require '../connection.php';
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
-$msg = "";
+$msg = '';
 
-if (isset($_SESSION['session_id']))
-	$session_id = $_SESSION['session_id'];
+if (isset($_SESSION['admin_id']))
+	$session_id = $_SESSION['admin_id'];
 else
 	header('location: ../index.php');
 
-$q = "SELECT Adm_ID, Adm_Name FROM admin WHERE Adm_ID = '$session_id'";
-if(!$result = $conn->query($q)) {
+$q = 'SELECT admin_id, admin_name FROM admins WHERE admin_id=?';
+$stmt = $conn->prepare($q);
+$stmt->bind_param('i', $session_id);
+if (!$stmt->execute())
+{
 	echo $conn->error;
 }
-else {
-	$row = $result->fetch_assoc();
-	$session_name = $row['Adm_Name'];
-}
-
-$query1 = "SELECT Lect_ID, Lect_Name FROM lecturer ORDER BY Lect_Name";
-if (!$res1 = $conn->query($query1))
-	die($conn->error);
-
-$query2 = "SELECT Sub_Code, Sub_Name FROM subject ORDER BY Sub_Name";
-if (!$res2 = $conn->query($query2))
-	die($conn->error);
-
-if(isset($_POST['add']))
+else
 {
-	$lect_id = $_POST['lecturer'];
-	$sub_code = $_POST['subject'];
-
-	$sql = "SELECT * FROM workload WHERE Lect_ID='$lect_id' AND Sub_Code='$sub_code'";
-
-	if ($result = $conn->query($sql)) {
-		if ($result->num_rows > 0) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-			<span onclick="this.parentElement.style.display=\'none\'"
-			class="w3-button w3-large w3-display-topright">&times;</span>
-			<h3>Unsuccessful!</h3>
-			<p>The lecturer has already assigned that subject!</p>
-			</div>';
-		}
-		else {
-			$sql = "INSERT INTO workload VALUES ('$lect_id', '$sub_code')";
-			if ($conn->query($sql)) {
-				$msg ='<div class="w3-panel w3-pale-green w3-display-container w3-border">
-				<span onclick="this.parentElement.style.display=\'none\'"
-				class="w3-button w3-large w3-display-topright">&times;</span>
-				<h3>Successful!</h3>
-				<p>New data is successfully recorded!</p>
-				</div>';
-			} else {
-				echo "Error: " . $conn->error; 
-			}
-		}
-	}
+	$row = $stmt->get_result()->fetch_assoc();
+	$session_name = $row['admin_name'];
 }
 
-if (isset($_POST['update'])) { // Update data
-	if (!isset($_POST['lecturer']) && !isset($_POST['subject'])) {
-		$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-		<span onclick="this.parentElement.style.display=\'none\'"
-		class="w3-button w3-large w3-display-topright">&times;</span>
-		<h3>Unsuccessful!</h3>
-		<p>You haven\'t select any option!</p>
-		</div>';
-	}
-	else {
-		$lect_id = $_POST['lecturer'];
-		$sub_code = $_POST['subject'];
+$query1 = 'SELECT lecturer_id, lecturer_name FROM lecturers ORDER BY lecturer_name'; // To list all lecturers in dropdown
+$stmt1 = $conn->prepare($query1);
+if ($stmt1->execute())
+{
+	$res1 = $stmt1->get_result();
+}
 
-		$sql = "SELECT * FROM workload WHERE Lect_ID='$lect_id' AND Sub_Code='$sub_code'";
+$query2 = 'SELECT * FROM subjects ORDER BY subject_name'; // To list all subjects in dropwdown
+$stmt2 = $conn->prepare($query2);
+if ($stmt2->execute())
+{
+	$res2 = $stmt2->get_result();
+}
 
-		if ($result = $conn->query($sql)) {
-			if ($result->num_rows > 0) {
-				$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-				<span onclick="this.parentElement.style.display=\'none\'"
-				class="w3-button w3-large w3-display-topright">&times;</span>
-				<h3>Unsuccessful!</h3>
-				<p>The lecturer has already assigned that subject!</p>
-				</div>';
-			}
-			else {
-				$sql = "INSERT INTO workload VALUES ('$lect_id', '$sub_code')";
-				if ($conn->query($sql)) {
-					$msg ='<div class="w3-panel w3-pale-green w3-display-container w3-border">
-					<span onclick="this.parentElement.style.display=\'none\'"
-					class="w3-button w3-large w3-display-topright">&times;</span>
-					<h3>Successful!</h3>
-					<p>New data is successfully recorded!</p>
-					</div>';
-				} else {
-					echo "Error: " . $conn->error; 
-				}
-			}
-		}
-	}
+if(isset($_POST['add'])) // Add workload
+{
+	$lecturer_id = $conn->real_escape_string($_POST['lecturer']);
+	$subject_code = $conn->real_escape_string($_POST['subject']);
+
+	$sql = 'SELECT * FROM workloads WHERE lecturer_id=? AND subject_code=?';
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param('is', $lecturer_id, $subject_code);
+	$stmt->execute();
+	$result = $stmt->get_result();
 	
+	if ($result->num_rows > 0)
+	{
+		$msg = '<p style="color: red">*ERROR! The lecturer has already assigned that subject</p>'; // Return error
+	}
+	else
+	{
+		$sql = 'INSERT INTO workloads VALUES (?, ?)';
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param('is', $lecturer_id, $subject_code);
+		if ($stmt->execute())
+		{
+			$msg = '<p style="color: green;">*New data is successfully recorded.</p>';
+		}
+		else
+		{
+			$msg = '<p style="color: red">*ERROR! '.$conn->error.'</p>';
+		}
+	}
 }
 
-if (isset($_POST['delete'])) { // Delete data
-	$sub_code = $_POST['sub_code'];
-	$lect_id = $_POST['lect_id'];
+if (isset($_POST['update'])) // Update data
+{
+	if (!isset($_POST['subject_code']))
+	{
+		$msg = '<p style="color: red">*ERROR! Please select both options.</p>';
+	}
+	else
+	{
+		$lecturer_id = $conn->real_escape_string($_POST['lecturer_id']);
+		$subject_code = $conn->real_escape_string($_POST['subject_code']);
+		$current_subject_code = htmlspecialchars(($_POST['current_subject_code']));
 
-	$sql = "DELETE FROM workload WHERE Sub_Code = '$sub_code' AND Lect_ID = '$lect_id'";
+		$sql = 'SELECT * FROM workloads WHERE lecturer_id = ? AND subject_code = ?';
 
-	if ($conn->query($sql)) {
-		$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
-		<span onclick="this.parentElement.style.display=\'none\'"
-		class="w3-button w3-large w3-display-topright">&times;</span>
-		<h3>Success!</h3>
-		<p>Data is deleted successfully.</p>
-		</div>';
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param('is', $lecturer_id, $subject_code);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		if ($result->num_rows > 0)
+		{
+			$msg = '<p style="color: red">*ERROR! The lecturer has already assigned that subject</p>';
+		}
+		else 
+		{
+			$sql = 'UPDATE workloads SET subject_code = ?
+			WHERE lecturer_id = ? AND subject_code = ?';
+
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param('sis', $subject_code, $lecturer_id, $current_subject_code);
+			
+			if ($stmt->execute()) {
+				$msg = '<p style="color: green;">*Data is successfully updated.</p>';
+			} else {
+				echo $subject_code;
+				echo 'Error: ' . $conn->error; 
+			}
+		}
+	}	
+}
+
+if (isset($_POST['delete'])) // Delete data
+{
+	$subject_code = htmlspecialchars($_POST['sub_code']);
+	$lecturer_id = htmlspecialchars($_POST['lect_id']);
+
+	# Check if the lecturer has made a quiz
+
+
+	$sql = 'DELETE FROM workloads WHERE subject_code=? AND lecturer_id=?';
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param('si', $subject_code, $lecturer_id);
+
+	if ($stmt->execute()) {
+		$msg = '<p style="color: green;">Data is deleted successfully.</p>';
 	}
 	else {
 		die($conn->error);
@@ -158,21 +166,21 @@ if (isset($_POST['delete'])) { // Delete data
 				<th>Update</th>
 				<th>Delete</th>
 			</tr>
-			<?php
-				$sql = "SELECT l.Lect_ID, l.Lect_Name, s.Sub_Code, s.Sub_Name
-				FROM workload
-				INNER JOIN lecturer as l ON (workload.Lect_ID=l.Lect_ID)
-				INNER JOIN subject as s ON (workload.Sub_Code=s.Sub_Code)";
+			<?php # List all assigned subjects
+				$sql = 'SELECT l.lecturer_id, l.lecturer_name, s.subject_code, s.subject_name
+				FROM workloads
+				INNER JOIN lecturers as l ON (workloads.lecturer_id = l.lecturer_id)
+				INNER JOIN subjects as s ON (workloads.subject_code = s.subject_code)';
 				$result = $conn->query($sql);
 				$i = 1;
 				if($result->num_rows > 0){
 					while ($row = $result->fetch_assoc()) { ?>
 						<tr>
 							<td><?php echo $i; $i++; ?></td>
-							<td><?php echo $row['Lect_Name']; ?></td>
-							<td><?php echo $row['Sub_Name']; ?></td>
-							<td><button onclick="onUpdate('<?php echo $row['Lect_Name']; ?>', '<?php echo $row['Sub_Code']; ?>', '<?php echo $row['Sub_Name']; ?>')">Update</button></td>
-							<td><button onclick="onDelete('<?php echo $row['Lect_ID']; ?>', '<?php echo $row['Sub_Code']; ?>', '<?php echo $row['Lect_Name']; ?>', '<?php echo $row['Sub_Name']; ?>')">Delete</button></td>
+							<td><?php echo $row['lecturer_name']; ?></td>
+							<td><?php echo $row['subject_name']; ?></td>
+							<td><button onclick="onUpdate('<?php echo $row['lecturer_id']; ?>', '<?php echo $row['lecturer_name']; ?>', '<?php echo $row['subject_code']; ?>', '<?php echo $row['subject_name']; ?>')">Update</button></td>
+							<td><button onclick="onDelete('<?php echo $row['lecturer_id']; ?>', '<?php echo $row['subject_code']; ?>', '<?php echo $row['lecturer_name']; ?>', '<?php echo $row['subject_name']; ?>')">Delete</button></td>
 						</tr>
 						<?php
 					}
@@ -185,7 +193,7 @@ if (isset($_POST['delete'])) { // Delete data
 						<select class="w3-select" name="lecturer">
 							<option value="" disabled selected>Choose lecturer</option>
 							<?php while($row1 = $res1->fetch_assoc()):;?>
-							<option value="<?php echo $row1['Lect_ID'];?>"><?php echo $row1['Lect_Name'];?></option>
+							<option value="<?php echo $row1['lecturer_id'];?>"><?php echo $row1['lecturer_name'];?></option>
 							<?php endwhile; ?>
 						</select>
 					</td>
@@ -212,19 +220,13 @@ if (isset($_POST['delete'])) { // Delete data
 			</div>
 			<form class="w3-container" action="" method="POST" autocomplete="off">
 				<div class="w3-section">
-					<input type="text" id="curr_sub_code" name="curr_sub_code" hidden>
+					<input type="text" id="curr_sub_code" name="current_subject_code" hidden> <!-- To post the current subject code -->
+					<input type="text" id="curr_lect_id" name="lecturer_id" hidden>
 					<label><b>Lecturer</b></label>
-					<select class="w3-select w3-border" name="lecturer">
-						<option id="prev_lect" value="" disabled></option>
-						<?php 
-						$res1->data_seek(0);
-						while($row1 = $res1->fetch_assoc()) {?>
-						<option value="<?php echo $row1['Lect_ID'];?>"><?php echo $row1['Lect_Name'];?></option>
-						<?php } ?>
-					</select>
-					<label><b>Subject</b></label>
-					<select class="w3-select w3-border" name="subject">
-						<option id="prev_sub" value="" disabled></option>
+					<input class="w3-input w3-border w3-margin-bottom" type="text" id="prev_lect" readonly>
+					<label><b  id="prev_sub"></b></label>
+					<select class="w3-select w3-border" name="subject_code">
+						<option value="" disabled selected>Choose subject</option>
 						<?php 
 						$res2->data_seek(0);
 						while($row2 = $res2->fetch_array()):;?>
@@ -264,10 +266,12 @@ if (isset($_POST['delete'])) { // Delete data
 		</div>
 	</div>
 	<script>
-		function onUpdate(lect_name, sub_code, sub_name) {
+		function onUpdate(lect_id, lect_name, sub_code, sub_name) {
 			document.getElementById('onUpdate').style.display='block';
-			document.getElementById('prev_lect').innerHTML = lect_name;
-			document.getElementById('prev_sub').innerHTML = sub_name;
+			document.getElementById('curr_sub_code').value = sub_code;
+			document.getElementById('curr_lect_id').value = lect_id;
+			document.getElementById('prev_lect').value = lect_name;
+			document.getElementById('prev_sub').innerHTML = 'Assign new subject (Current subject: ' + sub_name + ')';
 		}
 		function onDelete(lect_id, sub_code, stud_id, stud_name) {
 			document.getElementById('onDelete').style.display='block';

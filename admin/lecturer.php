@@ -1,150 +1,141 @@
 <?php
-require '../connection.php';
 session_start();
+require '../connection.php';
 date_default_timezone_set('Asia/Kuala_Lumpur');
 $msg = "";
 
-if (isset($_SESSION['session_id']))
-	$session_id = $_SESSION['session_id'];
+if (isset($_SESSION['admin_id']))
+	$session_id = $_SESSION['admin_id'];
 else
 	header('location: ../index.php');
 
-$q = "SELECT Adm_ID, Adm_Name FROM admin WHERE Adm_ID = '$session_id'";
-if(!$result = $conn->query($q)) {
+$q = 'SELECT admin_id, admin_name FROM admins WHERE admin_id = ?';
+$stmt = $conn->prepare($q);
+$stmt->bind_param('i', $session_id);
+if (!$stmt->execute())
+{
 	echo $conn->error;
 }
-else {
+else
+{
+	$result = $stmt->get_result();
 	$row = $result->fetch_assoc();
-	$session_name = $row['Adm_Name'];
+	$session_name = $row['admin_name'];
 }
 
 // Add new data
 if(isset($_POST['add']))
 {
-	$lect_id = $_POST['lect_id'];
-	$lect_name = $_POST['lect_name'];
-	$hashedPassword = password_hash($lect_id, PASSWORD_DEFAULT);
+	$lecturer_id = $_POST['lect_id'];
+	$lecturer_name = $_POST['lect_name'];
+	$lecturer_password = password_hash($lecturer_id, PASSWORD_DEFAULT);
 	$date = date("Y-m-d H:i:s");
 
-	$sql = "SELECT * FROM lecturer WHERE Lect_ID = '$lect_id'";
+	$sql = 'SELECT * FROM lecturers WHERE lecturer_id = ?';
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param('i', $lecturer_id);
 
-	if ($res = $conn->query($sql)) {
-		if ($res->num_rows > 0) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-			<span onclick="this.parentElement.style.display=\'none\'"
-			class="w3-button w3-large w3-display-topright">&times;</span>
-			<h3>Unsuccessful!</h3>
-			<p>The lecturer ID has already registered!</p>
-			</div>';
+	if ($stmt->execute())
+	{
+		$result = $stmt->get_result();
+		if ($result->num_rows > 0)
+		{
+			$msg = '<p style="color: red;">The lecturer ID has already registered!</p>';
 		}
-		else {
-			$sql1 = "INSERT INTO lecturer VALUES('$lect_id', '$lect_name', '$hashedPassword', 0)";
-			$sql2 = "INSERT INTO adm_lect VALUES('$session_id', '$lect_id', '$date')";
-			if($conn->query($sql1)) {
-				if($conn->query($sql2)) {
-					$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
-					<span onclick="this.parentElement.style.display=\'none\'"
-					class="w3-button w3-large w3-display-topright">&times;</span>
-					<h3>Success!</h3>
-					<p>New data is successfully recorded.</p>
-					</div>';
+		else
+		{
+			$sql1 = 'INSERT INTO lecturers VALUES(?,?,?, 0)';
+			$sql2 = 'INSERT INTO adm_lect VALUES(?,?,?)';
+
+			$stmt = $conn->prepare($sql1);
+			$stmt->bind_param('iss', $lecturer_id, $lecturer_name, $lecturer_password);
+			if($stmt->execute())
+			{
+				$stmt = $conn->prepare($sql2);
+				$stmt->bind_param('iis', $session_id, $lecturer_id, $date);
+				if($conn->query($sql2))
+				{
+					$msg = '<p style="color: green;">New data is successfully recorded!</p>';
 				}
-				else {
-					$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-					<span onclick="this.parentElement.style.display=\'none\'"
-					class="w3-button w3-large w3-display-topright">&times;</span>
-					<h3>Unsuccessful!</h3>
-					<p>Error: '.$conn->error.'</p>
-					</div>';
+				else
+				{
+					$msg = '<p style="color: red;">*ERROR! '. $conn->error .'</p>';
 				}
 			}
-			else {
-				$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-				<span onclick="this.parentElement.style.display=\'none\'"
-				class="w3-button w3-large w3-display-topright">&times;</span>
-				<h3>Unsuccessful!</h3>
-				<p>Error: '.$conn->error.'</p>
-				</div>';;
+			else
+			{
+				$msg = '<p style="color: red;">*ERROR! '. $conn->error .'</p>';
 			}
 		}
 	}
 }
 
-if(isset($_POST['update'])) { // Update data
-	$lect_id = $_POST['lect_id'];
-	$lect_name = $_POST['lect_name'];
+if(isset($_POST['update'])) // Update data
+{
+	$current_lecturer_id = $_POST['current_lecturer_id'];
+	$lecturer_id = $conn->real_escape_string($_POST['lecturer_id']);
+	$lecturer_name = $conn->real_escape_string($_POST['lecturer_name']);
 
 	$mod_on = date('Y-m-d H:i:s');
 
-	$q1 = "UPDATE lecturer
-			SET Lect_ID = '$lect_id', Lect_Name = '$lect_name'
-			WHERE Lect_ID = '$lect_id'";
+	$q1 = 'UPDATE lecturers
+			SET lecturer_id = ?, lecture_name = ?
+			WHERE lecturer_id = ?';
 
-	$q2 = "UPDATE adm_lect 
-			SET Adm_ID = '$session_id', Mod_On = '$mod_on'
-			WHERE Lect_ID = '$lect_id'";
+	$q2 = 'UPDATE adm_lect 
+			SET admin_id = ?, modified_on = ?
+			WHERE lecturer_id = ?';
 
-	if(!$result = $conn->query($q1)) {
-		$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-		<span onclick="this.parentElement.style.display=\'none\'"
-		class="w3-button w3-large w3-display-topright">&times;</span>
-		<h3>Unsuccessful!</h3>
-		<p>'.$conn->error.'</p>
-		</div>';
+	$stmt = $conn->prepare($q1);
+	$stmt->bind_param('isi', $lecturer_id, $lecturer_name, $current_lecturer_id);
+
+	if($stmt->execute())
+	{
+		$stmt = $conn->prepare($q2);
+		$stmt->bind_param('isi', $session_id, $mod_on, $lecturer_id);
+		if (!$stmt->execute())
+		{
+			$msg = '<p style="color: red;">*ERROR! '. $conn->error .'</p>';
+		}
+		else
+		{
+			$msg = '<p style="color: green;">Data is updated successfully!</p>';
+		}
 	}
-	else {
-		if (!$conn->query($q2)) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-			<span onclick="this.parentElement.style.display=\'none\'"
-			class="w3-button w3-large w3-display-topright">&times;</span>
-			<h3>Unsuccessful!</h3>
-			<p>'.$conn->error.'</p>
-			</div>';
-		}
-		else {
-			$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
-			<span onclick="this.parentElement.style.display=\'none\'"
-			class="w3-button w3-large w3-display-topright">&times;</span>
-			<h3>Success!</h3>
-			<p>Data is updated successfully.</p>
-			</div>';
-		}
+	else
+	{
+		$msg = '<p style="color: red;">*ERROR! '. $conn->error .'</p>';
 	}
 }
 
-if (isset($_POST['delete'])) { // Delete lecturer data
-	$lect_id = $_POST['lect_id'];
+if (isset($_POST['delete'])) // Delete data
+{
+	$lecturer_id = $_POST['lect_id'];
 
-	$sql = "SELECT Sub_Code FROM workload 
-			WHERE Lect_ID = '$lect_id'";
+	$sql = 'SELECT subject_code FROM workloads WHERE lecturer_id = ?';
 
-	if ($result = $conn->query($sql)) {
-		if ($result->num_rows > 0) {
-			$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-			<span onclick="this.parentElement.style.display=\'none\'"
-			class="w3-button w3-large w3-display-topright">&times;</span>
-			<h3>Unsuccessful!</h3>
-			<p>This lecturer has assigned with subject(s)!</p>
-			</div>';
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param('i', $lecturer_id);
+	if ($stmt->execute())
+	{
+		$result = $stmt->get_result();
+		if ($result->num_rows > 0)
+		{
+			$msg = '<p style="color: red;">*ERROR! This lecturer has assigned with subject(s)!</p>';
 		}
-		else {
-			$sql = "DELETE FROM lecturer WHERE Lect_ID = '$lect_id'";
+		else
+		{
+			$sql = 'DELETE FROM lecturers WHERE lecturer_id = ?';
+			$stmt = $conn->prepare($sql);
+			$stmt->bind_param('i', $lecturer_id);
 			
-			if ($conn->query($sql)) {
-				$msg = '<div class="w3-panel w3-pale-green w3-display-container w3-border">
-				<span onclick="this.parentElement.style.display=\'none\'"
-				class="w3-button w3-large w3-display-topright">&times;</span>
-				<h3>Success!</h3>
-				<p>Data is deleted successfully.</p>
-				</div>';
+			if ($stmt->execute())
+			{
+				$msg = '<p style="color: green;">*Data is successfully deleted!</p>';
 			}
-			else {
-				$msg = '<div class="w3-panel w3-pale-red w3-display-container w3-border">
-				<span onclick="this.parentElement.style.display=\'none\'"
-				class="w3-button w3-large w3-display-topright">&times;</span>
-				<h3>Unsuccessful!</h3>
-				<p>'.$conn->error.'</p>
-				</div>';
+			else
+			{
+				$msg = "<p style='color: red;'>*ERROR! $conn->error</p>";
 			}
 		}
 	}
@@ -183,23 +174,22 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 				<th>Delete</th>
 			</tr>
 			<?php
-				$sql = "SELECT l.Lect_ID, l.Lect_Name, a.Adm_ID, a.Adm_Name, Mod_On
+				$sql = 'SELECT l.lecturer_id, l.lecturer_name, a.admin_id, a.admin_name, modified_on
 				FROM adm_lect
-				INNER JOIN admin as a ON (adm_lect.Adm_ID=a.Adm_ID)
-				INNER JOIN lecturer as l ON (adm_lect.Lect_ID=l.Lect_ID)";
+				INNER JOIN admins AS a ON (adm_lect.admin_id = a.admin_id)
+				INNER JOIN lecturers AS l ON (adm_lect.lecturer_id = l.lecturer_id)';
 				if ($result = $conn->query($sql))
 				{
 					if ($result->num_rows > 0) {
 						while ($row = $result->fetch_assoc()) { ?>
 							<tr style="text-align: center">
-							<td><?php echo $row['Lect_ID']; ?></td>
-							<td><?php echo $row['Lect_Name']; ?></td>
-							<td><?php echo $row['Adm_Name']; ?></td>
-							<td><?php $date = $row['Mod_On'];
+							<td><?php echo $row['lecturer_id']; ?></td>
+							<td><?php echo $row['lecturer_name']; ?></td>
+							<td><?php echo $row['admin_name']; ?></td>
+							<td><?php $date = $row['modified_on'];
 							echo date("j/n/Y g:i:s A", strtotime($date)); ?></td>
-							<td><button onclick="onUpdate(<?php echo $row['Lect_ID']; ?>, '<?php echo $row['Lect_Name']; ?>')">Update</button></td>
-							<td><button onclick="onDelete('<?php echo $row['Lect_ID']; ?>', '<?php echo $row['Lect_Name']; ?>')">Delete</button></td>
-											
+							<td><button onclick="onUpdate(<?php echo $row['lecturer_id']; ?>, '<?php echo $row['lecturer_name']; ?>')">Update</button></td>
+							<td><button onclick="onDelete('<?php echo $row['lecturer_id']; ?>', '<?php echo $row['lecturer_name']; ?>')">Delete</button></td>				
 							</tr>
 							<?php
 						}
@@ -231,10 +221,11 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 			</div>
 			<form class="w3-container" action="" method="POST">
 				<div class="w3-section">
+					<input type="text" id="current_lecturer" name="current_lecturer_id" hidden>
 					<label><b>Lecturer ID</b></label>
-					<input class="w3-input w3-border w3-margin-bottom" type="text" id="lect_id" name="lect_id" required>
+					<input class="w3-input w3-border w3-margin-bottom" type="text" id="lect_id" name="lecturer_id" required>
 					<label><b>Lecturer Name</b></label>
-					<input class="w3-input w3-border" type="text" id="lect_name" name="lect_name" required>
+					<input class="w3-input w3-border" type="text" id="lect_name" name="lecturer_name" required>
 					<button class="w3-button w3-block w3-dark-grey w3-section w3-padding" type="submit" name="update">Save</button>
 				</div>
 			</form>
@@ -268,6 +259,7 @@ if (isset($_POST['delete'])) { // Delete lecturer data
 	<script>
 		function onUpdate(lect_id, lect_name) {
 			document.getElementById('onUpdate').style.display='block';
+			document.getElementById('current_lecturer').value = lect_id;
 			document.getElementById("lect_id").value = lect_id;
 			document.getElementById("lect_name").value = lect_name;
 		}
