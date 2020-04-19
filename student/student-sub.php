@@ -1,36 +1,41 @@
 <?php
 require '../connection.php';
 session_start();
-$msg = "";
+$msg = '';
 
-if (isset($_SESSION['stud_id'])) {
-	$stud_id = $_SESSION['stud_id'];
-	$q = "SELECT Stud_ID, Stud_Name FROM student WHERE Stud_ID = '$stud_id'";
-	if(!$result = $conn->query($q)) {
+if (isset($_SESSION['student_id']))
+{
+	$student_id = $_SESSION['student_id'];
+	$q = 'SELECT student_id, student_name FROM students WHERE student_id = ?';
+	$stmt = $conn->prepare($q);
+	$stmt->bind_param('s', $student_id);
+	if(!$stmt->execute())
+	{
 		echo $conn->error;
 	}
-	else {
-		$row = $result->fetch_assoc();
-		$stud_name = $row['Stud_Name'];
+	else
+	{
+		$row = $stmt->get_result()->fetch_assoc();
+		$student_name = $row['student_name'];
 	}
 }
-else {
+else
+{
 	header('location: ../index.php');
 }
 
-if (isset($_POST['register'])) {
-	$sub_code = $_POST['sub_code'];
-	$lect_id = $_POST['lect_id'];
+if (isset($_POST['register'])) // Student registers subject
+{
+	$subject_code = $_POST['subject_code'];
+	$lecturer_id = $_POST['lecturer_id'];
 
-	$sql = "INSERT INTO stud_sub VALUES ('$stud_id', '$sub_code', '$lect_id')";
+	$sql = 'INSERT INTO stud_sub VALUES (?,?,?)';
 
-	if (!$conn->query($sql)) {
-		$msg = '<div class="w3-panel w3-pale-red w3-display-container">
-		<span onclick="this.parentElement.style.display=\'none\'"
-		class="w3-button w3-large w3-display-topright">&times;</span>
-		<h3>Unsuccessful!</h3>
-		<p>'.$conn->error.'</p>
-		</div>';
+	$stmt = $conn->prepare($sql);
+	$stmt->bind_param('ssi', $student_id, $subject_code, $lecturer_id);
+	if (!$stmt->execute())
+	{
+		$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
 	}
 }
 ?>
@@ -56,7 +61,7 @@ if (isset($_POST['register'])) {
 			<a href="home.php" class="w3-bar-item w3-button w3-light-grey">Subject List</a>
 			<a href="../logout.php" class="w3-bar-item w3-button w3-right">Log Out</a>
 		</div>
-		<p>Current Session: <?php echo $stud_id; ?></p>
+		<p>Current Session: <?php echo $student_id .', '.$stud_name; ?></p>
 		<h4>Register subject below</h4>
 		<table class="w3-table w3-bordered">
 			<tr>
@@ -66,10 +71,10 @@ if (isset($_POST['register'])) {
 				<th>Register</th>
 			</tr>
 			<?php
-				$sql1 = "SELECT workload.*, l.Lect_ID, l.Lect_Name, s.Sub_Code, s.Sub_Name FROM workload
-						INNER JOIN lecturer AS l ON (workload.Lect_ID = l.Lect_ID)
-						INNER JOIN subject AS s ON (workload.Sub_Code = s.Sub_Code)
-						ORDER BY s.Sub_Name";
+				$sql1 = 'SELECT workloads.*, l.lecturer_id, l.lecturer_name, s.subject_code, s.subject_name FROM workloads
+						INNER JOIN lecturers AS l ON (workloads.lecturer_id = l.lecturer_id)
+						INNER JOIN subjects AS s ON (workloads.subject_code = s.subject_code)
+						ORDER BY s.subject_name';
 				
 
 				$result1 = $conn->query($sql1);
@@ -79,20 +84,20 @@ if (isset($_POST['register'])) {
 					foreach ($result1 as $row) { ?>
 						<tr style="text-align: center">
 							<td><?php echo $i; ?></td>
-							<td><?php echo $row['Lect_Name']; ?></td>
-							<td><?php echo $row["Sub_Name"]; ?></td>
-							<td>
+							<td><?php echo $row['lecturer_name']; ?></td>
+							<td><?php echo $row["subject_name"]; ?></td>
+							<td> <!-- Display message if student has registered the subject -->
 								<?php 
-								$sub = $row['Sub_Code'];
-								$sql2 = "SELECT * FROM stud_sub WHERE Stud_ID = '$stud_id' AND Sub_Code = '$sub'";
+								$sub = $row['subject_code'];
+								$sql2 = "SELECT * FROM stud_sub WHERE student_id = '$student_id' AND subject_code = '$sub'";
 								$result2 = $conn->query($sql2);
 								if(!$result2) die($conn->error);
 								if ($result2->num_rows > 0) echo "Already registered";
 								else {
 								?>
 								<form action="" method="POST">
-									<input type="text" name="sub_code" value="<?php echo $row['Sub_Code']?>" hidden>
-									<input type="text" name="lect_id" value="<?php echo $row['Lect_ID']?>" hidden>
+									<input type="text" name="subject_code" value="<?php echo $row['subject_code']?>" hidden>
+									<input type="text" name="lecturer_id" value="<?php echo $row['lecturer_id']?>" hidden>
 									<input class="w3-button w3-light-grey" type="submit" name="register" value="Register">
 								</form>
 							
@@ -105,12 +110,7 @@ if (isset($_POST['register'])) {
 				}
 			?>
 		</table>
-		<p><?php echo $msg; ?></p>
+		<?php echo $msg; ?>
 	</div>
-	<script>    
-	if(typeof window.history.pushState == 'function') {
-		window.history.pushState({}, "Hide", "http://localhost:8012/project-db/student/student-sub.php");
-	}
-	</script>
 </body>
 </html>
