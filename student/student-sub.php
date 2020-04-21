@@ -61,7 +61,7 @@ if (isset($_POST['register'])) // Student registers subject
 			<a href="home.php" class="w3-bar-item w3-button w3-light-grey">Subject List</a>
 			<a href="../logout.php" class="w3-bar-item w3-button w3-right">Log Out</a>
 		</div>
-		<p>Current Session: <?php echo $student_id .', '.$stud_name; ?></p>
+		<p>Current Session: <?php echo $student_id .', '.$student_name; ?></p>
 		<h4>Register subject below</h4>
 		<table class="w3-table w3-bordered">
 			<tr>
@@ -76,8 +76,10 @@ if (isset($_POST['register'])) // Student registers subject
 						INNER JOIN subjects AS s ON (workloads.subject_code = s.subject_code)
 						ORDER BY s.subject_name';
 				
-
-				$result1 = $conn->query($sql1);
+				$stmt1 = $conn->prepare($sql1);
+				if (!$stmt1->execute())
+					die($conn->error);
+				$result1 = $stmt1->get_result();
 
 				if($result1->num_rows > 0){
 					$i = 1;
@@ -89,10 +91,12 @@ if (isset($_POST['register'])) // Student registers subject
 							<td> <!-- Display message if student has registered the subject -->
 								<?php 
 								$sub = $row['subject_code'];
-								$sql2 = "SELECT * FROM stud_sub WHERE student_id = '$student_id' AND subject_code = '$sub'";
-								$result2 = $conn->query($sql2);
-								if(!$result2) die($conn->error);
-								if ($result2->num_rows > 0) echo "Already registered";
+								$sql2 = 'SELECT * FROM stud_sub WHERE student_id = ? AND subject_code = ?';
+								$stmt2 = $conn->prepare($sql2);
+								$stmt2->bind_param('ss', $student_id, $sub);
+								if (!$stmt2->execute()) die($conn->error);
+								$result2 = $stmt2->get_result();
+								if ($result2->num_rows > 0) echo '<button class="w3-button" disabled>Already registered</button>'; // If row is present, disable register button
 								else {
 								?>
 								<form action="" method="POST">
