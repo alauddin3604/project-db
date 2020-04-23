@@ -36,11 +36,11 @@ if (isset($_POST['add'])) // Add new data
 
 	if ($result->num_rows > 0)
 	{
-		$msg = '<p style="color: red">*ERROR! The entered ID has already registered</p>'; // Return error
+		$msg = '<p class="error">*ERROR! The entered ID has already registered</p>'; // Return error
 	}
 	else
 	{
-		$student_name = $conn->real_escape_string($_POST['student_name']);
+		$student_name = strtoupper($conn->real_escape_string($_POST['student_name']));
 		$student_email = $student_id.'@siswa.uthm.edu.my';
 		$student_password = password_hash($student_id, PASSWORD_DEFAULT);
 		$log_status = 0;
@@ -59,16 +59,16 @@ if (isset($_POST['add'])) // Add new data
 			$stmt->bind_param('iss', $session_id, $student_id, $mod_on);
 			if($stmt->execute())
 			{
-				$msg = '<p style="color: green;">New data is successfully recorded.</p>';
+				$msg = '<p class="success">New data is successfully recorded.</p>';
 			}
 			else
 			{
-				$msg = '<p style="color: red">*1 '.$conn->error.'</p>';
+				$msg = '<p class="error">*1 '.$conn->error.'</p>';
 			}
 		}
 		else
 		{
-			$msg = '<p style="color: red">*2 '.$conn->error.'</p>';
+			$msg = '<p class="error">*2 '.$conn->error.'</p>';
 		}
 	}
 	
@@ -112,7 +112,7 @@ if(isset($_POST['update'])) // Update data
 			if (!$stmt->execute())
 			{
 				die($conn->error);
-				$msg = '<p style="color: red">*'.$conn->error.'</p>';
+				$msg = '<p class="error">*'.$conn->error.'</p>';
 			}
 		}
 		else
@@ -124,7 +124,7 @@ if(isset($_POST['update'])) // Update data
 			if (!$stmt->execute())
 			{
 				die($conn->error);
-				$msg = '<p style="color: red">*'.$conn->error.'</p>';
+				$msg = '<p class="error">*'.$conn->error.'</p>';
 			}
 		}
 
@@ -134,11 +134,11 @@ if(isset($_POST['update'])) // Update data
 
 		if ($stmt->execute())
 		{
-			$msg = '<p style="color: green;">The data is successfully updated.</p>';
+			$msg = '<p class="success">The data is successfully updated.</p>';
 		}
 		else
 		{
-			$msg = '<p style="color: red;">*ERROR! '.$conn->error.'.</p>';
+			$msg = '<p class="error">*ERROR! '.$conn->error.'.</p>';
 		}	
 }
 
@@ -153,7 +153,7 @@ if (isset($_POST['delete'])) // Delete student data
 	$result = $stmt->get_result();
 	if ($result->num_rows > 0)
 	{
-		$msg = '<p style="color: red;">*ERROR! The student has already registered subject(s).</p>';
+		$msg = '<p class="error"">*ERROR! The student has already registered subject(s).</p>';
 	}
 	else
 	{
@@ -161,10 +161,10 @@ if (isset($_POST['delete'])) // Delete student data
 		$stmt->prepare($sql);
 		$stmt->bind_param('s', $student_id);
 		if ($stmt->execute()) {
-			$msg = '<p style="color: green;">Data is deleted successfully.</p>';
+			$msg = '<p class="success">Data is deleted successfully.</p>';
 		}
 		else {
-			$msg = '<p style="color: red;">*ERROR! '.$conn->error.'';
+			$msg = '<p class="error">*ERROR! '.$conn->error.'';
 		}
 	}
 }
@@ -177,12 +177,11 @@ if (isset($_POST['delete'])) // Delete student data
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Register Student</title>
 	<link rel="stylesheet" href="../css/w3.css">
-	<style>
-	</style>
+	<link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 	<div class="w3-container">
-		<div class="w3-bar w3-light-grey">
+		<div class="w3-bar w3-dark-grey">
 			<a href="home.php" class="w3-bar-item w3-button">Home</a>
 			<a href="admin.php" class="w3-bar-item w3-button">Admin</a>
 			<a href="student.php" class="w3-bar-item w3-button w3-black">Student</a>

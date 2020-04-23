@@ -40,6 +40,7 @@ if(!$result = $conn->query($sql)) die($conn->error);
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Home: Student</title>
 	<link rel="stylesheet" href="../css/w3.css">
+	<link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 	<div class="w3-container">
@@ -67,9 +68,9 @@ if(!$result = $conn->query($sql)) die($conn->error);
 				<td><?php echo $row['lecturer_name']; ?></td>
 				<td><?php echo $row['subject_name']; ?></td>
 				<td></td>
-				<td><button>View</button></td>
+				<td><a href="quiz-tf.php?q=<?php echo $row['subject_code']; ?>"><button>View</button></a></td>
 				<td></td>
-				<td><button>View</button></td>
+				<td><a href="quiz-subjective.php?q=<?php echo $row['subject_code']; ?>"><button>View</button></a></td>
 				</tr>
 			<?php
 			$i++;

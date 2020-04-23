@@ -136,6 +136,7 @@ if (isset($_POST['delete'])) // Delete data
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Register Workload</title>
 	<link rel="stylesheet" href="../css/w3.css">
+	<link rel="stylesheet" href="../css/style.css">
 	<style>
 		input::-webkit-outer-spin-button,
 		input::-webkit-inner-spin-button {
@@ -146,7 +147,7 @@ if (isset($_POST['delete'])) // Delete data
 </head>
 <body>
 	<div class="w3-container">
-		<div class="w3-bar w3-light-grey">
+		<div class="w3-bar w3-dark-grey">
 			<a href="home.php" class="w3-bar-item w3-button">Home</a>
 			<a href="admin.php" class="w3-bar-item w3-button">Admin</a>
 			<a href="student.php" class="w3-bar-item w3-button">Student</a>

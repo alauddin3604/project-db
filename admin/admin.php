@@ -4,18 +4,22 @@ require '../connection.php';
 date_default_timezone_set('Asia/Kuala_Lumpur');
 $msg = '';
 
+# Check session
 if (!isset($_SESSION['admin_id']))
+{
 	header('location: ../index.php');
-
+}
+	
 if(isset($_POST['add'])) // Add new data
 {
 	if (empty($_POST['admin_id']) || empty($_POST['admin_name']))
 	{
-		$msg = '<p style="color: red;">*Please fill all the fields!</p>';
+		$msg = '<p class="error">*Please fill all the fields!</p>';
 	}
-	else {
+	else
+	{
 		$admin_id = $conn->real_escape_string($_POST['admin_id']);
-		$admin_name = $conn->real_escape_string($_POST['admin_name']);
+		$admin_name = strtoupper($conn->real_escape_string($_POST['admin_name']));
 
 		$sql = 'SELECT admin_id FROM admins WHERE admin_id = ?';
 		$stmt = $conn->prepare($sql);
@@ -24,7 +28,7 @@ if(isset($_POST['add'])) // Add new data
 		$result = $stmt->get_result();
 		if ($result->num_rows > 0)
 		{
-			$msg = '<p style="color: red;">*ERROR! The entered ID has already registered</p>';
+			$msg = '<p class="error">*ERROR! The entered ID has already registered</p>';
 		}
 		else
 		{
@@ -35,11 +39,11 @@ if(isset($_POST['add'])) // Add new data
 			$stmt->bind_param('issi', $admin_id, $admin_name, $admin_password, $log_status);
 			if ($stmt->execute())
 			{
-				$msg = '<p style="color: green;">New data is successfully recorded.</p>';
+				$msg = '<p class="success">New data is successfully recorded.</p>';
 			}
 			else
 			{
-				$msg = '<p style="color: red;">' . $conn->error . '</p>';
+				$msg = '<p class="error">' . $conn->error . '</p>';
 			}
 		}
 		
@@ -52,18 +56,18 @@ if (isset($_POST['update'])) // Update data
 	$admin_id =  $_POST['adm_id'];
 	$admin_name =  $_POST['adm_name'];
 	
-	$sql = "UPDATE admins SET Adm_ID = ?, Adm_Name = ? WHERE Adm_ID = ?";
+	$sql = "UPDATE admins SET admin_id = ?, admin_name = ? WHERE admin_id = ?";
 	$stmt = $conn->prepare($sql);
 	$stmt->bind_param('isi', $admin_id, $admin_name, $current_admin_id);
 	if ($stmt->execute())
 	{
 		if ($_SESSION['admin_id'] == $current_admin_id)
 			$_SESSION['admin_id'] = $admin_id;
-		$msg = '<p style="color: green">Data is updated successfully.</p>';
+		$msg = '<p class="success">Data is updated successfully.</p>';
 	}
 	else
 	{
-		$msg = '<p style="color: red;">' . $conn->error . '</p>';
+		$msg = '<p class="error">' . $conn->error . '</p>';
 	}
 }
 
@@ -82,7 +86,7 @@ if (isset($_POST['delete'])) // Delete data
 		
 	if ($result->num_rows > 0)
 	{
-		$msg = '<p style="color: red;">The admin data is currently used in other tables.</p>';
+		$msg = '<p class="error">The admin data is currently used in other tables.</p>';
 	}
 	else
 	{
@@ -92,11 +96,11 @@ if (isset($_POST['delete'])) // Delete data
 		$stmt->bind_param('i', $admin_id);
 		if ($stmt->execute())
 		{
-			$msg = '<p style="color: green;">Data is deleted successfully.</p>';
+			$msg = '<p class="success">Data is deleted successfully.</p>';
 		}
 		else
 		{
-			$msg = '<p style="color: red;">' . $conn->error . '</p>';
+			$msg = '<p class="error">' . $conn->error . '</p>';
 		}
 	}
 }
@@ -124,9 +128,11 @@ else
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Register Admin</title>
 	<link rel="stylesheet" href="../css/w3.css">
+	<link rel="stylesheet" href="../css/style.css">
 	<style>
 		input::-webkit-outer-spin-button,
-		input::-webkit-inner-spin-button {
+		input::-webkit-inner-spin-button
+		{
 			-webkit-appearance: none;
 			margin: 0;
 		}
@@ -134,7 +140,7 @@ else
 </head>
 <body>
 	<div class="w3-container">
-		<div class="w3-bar w3-light-grey">
+		<div class="w3-bar w3-dark-grey">
 			<a href="home.php" class="w3-bar-item w3-button">Home</a>
 			<a href="admin.php" class="w3-bar-item w3-button w3-black">Admin</a>
 			<a href="student.php" class="w3-bar-item w3-button">Student</a>
@@ -184,7 +190,7 @@ else
 	</div>
 	<!-- Update popup box -->
 	<div id="onUpdate" class="w3-modal">
-		<div class="w3-modal-content w3-card-4" style="max-width:600px">
+		<div class="w3-modal-content w3-card-4" style="max-width:400px">
 			<div class="w3-center"><br>
 				<span onclick="document.getElementById('onUpdate').style.display='none'" class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
 			</div>
@@ -194,13 +200,12 @@ else
 					<label><b>Admin ID</b></label>
 					<input class="w3-input w3-border w3-margin-bottom" type="text" id="adm_id" name="adm_id" required>
 					<label><b>Admin Name</b></label>
-					<input class="w3-input w3-border" type="text" id="adm_name" name="adm_name" required>
-					<button class="w3-button w3-block w3-dark-grey w3-section w3-padding" type="submit" name="update">Save</button>
+					<input class="w3-input w3-border" type="text" id="adm_name" name="adm_name" required>			
+				</div>
+				<div class="w3-container w3-border-top w3-padding-16">
+				<button class="w3-button w3-block w3-dark-grey" type="submit" name="update">Save</button>
 				</div>
 			</form>
-			<div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
-				<button onclick="document.getElementById('onUpdate').style.display='none'" type="button" class="w3-button w3-red w3-right w3-padding">Cancel</button>
-			</div>
 		</div>
 	</div>
 	<!-- Delete popup box -->

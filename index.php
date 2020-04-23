@@ -47,12 +47,7 @@ if (isset($_POST['login']))
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Log In</title>
 	<link rel="stylesheet" href="css/w3.css">
-	<style>
-		.error
-		{
-			color:red;
-		}
-	</style>
+	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 	<div class="w3-container w3-half w3-margin">
