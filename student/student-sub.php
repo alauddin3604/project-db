@@ -46,6 +46,7 @@ if (isset($_POST['register'])) // Student registers subject
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Register subject</title>
 	<link rel="stylesheet" href="../css/w3.css">
+	<link rel="stylesheet" href="../css/style.css">
 	<style>
 		table {
 			table-layout: fixed;
@@ -57,7 +58,7 @@ if (isset($_POST['register'])) // Student registers subject
 </head>
 <body>
 	<div class="w3-container">
-		<div class="w3-bar w3-light-grey">
+		<div class="w3-bar w3-dark-grey">
 			<a href="home.php" class="w3-bar-item w3-button w3-light-grey">Subject List</a>
 			<a href="../logout.php" class="w3-bar-item w3-button w3-right">Log Out</a>
 		</div>
@@ -81,7 +82,8 @@ if (isset($_POST['register'])) // Student registers subject
 					die($conn->error);
 				$result1 = $stmt1->get_result();
 
-				if($result1->num_rows > 0){
+				if($result1->num_rows > 0)
+				{
 					$i = 1;
 					foreach ($result1 as $row) { ?>
 						<tr style="text-align: center">
