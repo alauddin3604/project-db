@@ -35,7 +35,11 @@ if (isset($_POST['register'])) // Student registers subject
 	$stmt->bind_param('ssi', $student_id, $subject_code, $lecturer_id);
 	if (!$stmt->execute())
 	{
-		$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
+		$msg = '<p class="error">*ERROR! '.$conn->error.'</p>';
+	}
+	else
+	{
+		$msg = '<p class="success">Done registered ' . $subject_code . '</p>';
 	}
 }
 ?>
@@ -58,7 +62,7 @@ if (isset($_POST['register'])) // Student registers subject
 </head>
 <body>
 	<div class="w3-container">
-		<div class="w3-bar w3-dark-grey">
+		<div class="w3-bar">
 			<a href="home.php" class="w3-bar-item w3-button w3-light-grey">Subject List</a>
 			<a href="../logout.php" class="w3-bar-item w3-button w3-right">Log Out</a>
 		</div>
@@ -78,12 +82,12 @@ if (isset($_POST['register'])) // Student registers subject
 						ORDER BY s.subject_name';
 				
 				$stmt1 = $conn->prepare($sql1);
-				if (!$stmt1->execute())
+				if (!$stmt1->execute()) {
 					die($conn->error);
+				}		
 				$result1 = $stmt1->get_result();
 
-				if($result1->num_rows > 0)
-				{
+				if($result1->num_rows > 0) {
 					$i = 1;
 					foreach ($result1 as $row) { ?>
 						<tr style="text-align: center">
@@ -98,7 +102,9 @@ if (isset($_POST['register'])) // Student registers subject
 								$stmt2->bind_param('ss', $student_id, $sub);
 								if (!$stmt2->execute()) die($conn->error);
 								$result2 = $stmt2->get_result();
-								if ($result2->num_rows > 0) echo '<button class="w3-button" disabled>Already registered</button>'; // If row is present, disable register button
+								if ($result2->num_rows > 0) {
+									echo '<button class="w3-button" disabled>Already registered</button>'; // If row is present, disable register button
+								}
 								else {
 								?>
 								<form action="" method="POST">
@@ -106,7 +112,6 @@ if (isset($_POST['register'])) // Student registers subject
 									<input type="text" name="lecturer_id" value="<?php echo $row['lecturer_id']?>" hidden>
 									<input class="w3-button w3-light-grey" type="submit" name="register" value="Register">
 								</form>
-							
 							</td>
 						</tr>
 						<?php
