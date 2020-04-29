@@ -1,5 +1,15 @@
 <?php
+session_start();
+require '../connection.php';
 
+if (isset($_SESSION['lecturer_id']))
+{
+	$lecturer_id = $_SESSION['lecturer_id'];
+}
+else
+{
+	header('location: ../index.php');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

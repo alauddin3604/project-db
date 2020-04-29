@@ -1,0 +1,23 @@
+@media (prefers-color-scheme: dark) {
+	body {
+		background-color: #2d3239;
+		color: #ccc;
+	}
+	.w3-modal-content, .w3-card-4 {
+		color: #ccc;
+		background-color: #262626;
+	}
+	input {
+		color: #000000;
+	}
+}
+
+.success
+{
+	color: #47d147;
+}
+
+.error
+{
+	color: #ff3333;
+}
