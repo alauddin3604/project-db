@@ -7,11 +7,12 @@ $error = "";
 
 if (isset($_POST['login']))
 {
-	if (trim($_POST['id']) == '' || trim($_POST['pass']) == '') { // Check if both fields are not filled
+	if (trim($_POST['id']) == '' || trim($_POST['pass']) == '') // If both fields are not filled
+	{
 		$error = "*Please fill both input fields!";
 	}
-	else if (isset($_POST['user'])) { // If radio button is checked
-		
+	else if (isset($_POST['user'])) // If radio button is checked
+	{
 		$id = $_POST['id'];
 		$pass = $_POST['pass'];
 
