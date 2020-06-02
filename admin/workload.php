@@ -49,7 +49,7 @@ if(isset($_POST['add'])) // Add workload
 	
 	if ($result->num_rows > 0)
 	{
-		$msg = '<p style="color: red">*ERROR! The lecturer has already assigned that subject</p>'; // Return error
+		$msg = '<p class="error">*ERROR! The lecturer has already assigned that subject</p>'; // Return error
 	}
 	else
 	{
@@ -58,11 +58,11 @@ if(isset($_POST['add'])) // Add workload
 		$stmt->bind_param('is', $lecturer_id, $subject_code);
 		if ($stmt->execute())
 		{
-			$msg = '<p style="color: green;">*New data is successfully recorded.</p>';
+			$msg = '<p class="success">*New data is successfully recorded.</p>';
 		}
 		else
 		{
-			$msg = '<p style="color: red">*ERROR! '.$conn->error.'</p>';
+			$msg = '<p class="error">*ERROR! '.$conn->error.'</p>';
 		}
 	}
 }
@@ -120,7 +120,7 @@ if (isset($_POST['delete'])) // Delete data
 	$stmt->bind_param('si', $subject_code, $lecturer_id);
 
 	if ($stmt->execute()) {
-		$msg = '<p style="color: green;">Data is deleted successfully.</p>';
+		$msg = '<p class="success">Data is deleted successfully.</p>';
 	}
 	else {
 		die($conn->error);
@@ -263,7 +263,7 @@ if (isset($_POST['delete'])) // Delete data
 					<button onclick="document.getElementById('onDelete').style.display='none'" type="button" class="w3-button w3-red w3-right w3-padding">Cancel</button>
 					<button class="w3-button w3-green w3-right w3-padding" type="submit" name="delete">Confirm</button>
 				</div>
-		</form>
+			</form>
 		</div>
 	</div>
 	<script>
