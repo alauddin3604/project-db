@@ -146,7 +146,7 @@ if (isset($_POST['delete'])) // Delete student data
 {
 	$student_id = htmlspecialchars($_POST['student_id']);
 
-	$sql = "SELECT Stud_ID FROM stud_sub WHERE Stud_ID=?"; // Check if student has registered subject
+	$sql = "SELECT student_id FROM stud_sub WHERE student_id = ?"; // Check if student has registered subject
 	$stmt = $conn->prepare($sql);
 	$stmt->bind_param('s', $student_id);
 	$stmt->execute();
