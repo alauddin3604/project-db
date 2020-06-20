@@ -2,9 +2,9 @@
 class DB
 {
 	private $servername = 'localhost';
-	private $username = 'root';
-	private $password = '';
-	private $dbname = 'project_db';
+	private $username   = 'root';
+	private $password   = '';
+	private $dbname     = 'project_db';
 
 	protected $db;
 
@@ -16,7 +16,7 @@ class DB
 
 			if (!$this->db)
 			{
-				echo 'Cannot connect to database';
+				echo 'Cannot connect to database.';
 				exit;
 			}
 		}
