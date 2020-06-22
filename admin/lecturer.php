@@ -1,8 +1,9 @@
 <?php
 session_start();
 require '../connection.php';
+include '../message.php';
 date_default_timezone_set('Asia/Kuala_Lumpur');
-$msg = "";
+$msg = '';
 
 if (isset($_SESSION['admin_id']))
 	$session_id = $_SESSION['admin_id'];
@@ -14,7 +15,7 @@ $stmt = $conn->prepare($q);
 $stmt->bind_param('i', $session_id);
 if (!$stmt->execute())
 {
-	echo $conn->error;
+	$msg = $errorMsg;
 }
 else
 {
@@ -27,7 +28,7 @@ else
 if(isset($_POST['add']))
 {
 	$lecturer_id = $_POST['lect_id'];
-	$lecturer_name = $_POST['lect_name'];
+	$lecturer_name = strtoupper($_POST['lect_name']);
 	$lecturer_password = password_hash($lecturer_id, PASSWORD_DEFAULT);
 	$date = date("Y-m-d H:i:s");
 
@@ -39,9 +40,7 @@ if(isset($_POST['add']))
 	{
 		$result = $stmt->get_result();
 		if ($result->num_rows > 0)
-		{
-			$msg = '<p style="color: red;">The lecturer ID has already registered!</p>';
-		}
+			$msg = $duplicateMsg;
 		else
 		{
 			$sql1 = 'INSERT INTO lecturers VALUES(?,?,?, 0)';
@@ -53,19 +52,13 @@ if(isset($_POST['add']))
 			{
 				$stmt = $conn->prepare($sql2);
 				$stmt->bind_param('iis', $session_id, $lecturer_id, $date);
-				if($conn->query($sql2))
-				{
-					$msg = '<p style="color: green;">New data is successfully recorded!</p>';
-				}
+				if($stmt->execute())
+					$msg = $addMsg;
 				else
-				{
-					$msg = '<p style="color: red;">*ERROR! '. $conn->error .'</p>';
-				}
+					$msg = 'ERROR1';
 			}
 			else
-			{
-				$msg = '<p style="color: red;">*ERROR! '. $conn->error .'</p>';
-			}
+				$msg = 'ERROR2';
 		}
 	}
 }
@@ -74,37 +67,74 @@ if(isset($_POST['update'])) // Update data
 {
 	$current_lecturer_id = $_POST['current_lecturer_id'];
 	$lecturer_id = $conn->real_escape_string($_POST['lecturer_id']);
-	$lecturer_name = $conn->real_escape_string($_POST['lecturer_name']);
 
-	$mod_on = date('Y-m-d H:i:s');
-
-	$q1 = 'UPDATE lecturers
-			SET lecturer_id = ?, lecture_name = ?
-			WHERE lecturer_id = ?';
-
-	$q2 = 'UPDATE adm_lect 
-			SET admin_id = ?, modified_on = ?
-			WHERE lecturer_id = ?';
-
-	$stmt = $conn->prepare($q1);
-	$stmt->bind_param('isi', $lecturer_id, $lecturer_name, $current_lecturer_id);
-
-	if($stmt->execute())
+	if ($current_lecturer_id != $lecturer_id)
 	{
-		$stmt = $conn->prepare($q2);
-		$stmt->bind_param('isi', $session_id, $mod_on, $lecturer_id);
-		if (!$stmt->execute())
+		# Check if entered ID is duplicate
+		$sql = "SELECT lecturer_id FROM lecturers WHERE lecturer_id = ?";
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param('i', $lecturer_id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+
+		if ($result->num_rows > 0)
 		{
-			$msg = '<p style="color: red;">*ERROR! '. $conn->error .'</p>';
+			$msg = $duplicateMsg; // Return error
 		}
 		else
 		{
-			$msg = '<p style="color: green;">Data is updated successfully!</p>';
+			goto update;
 		}
 	}
 	else
 	{
-		$msg = '<p style="color: red;">*ERROR! '. $conn->error .'</p>';
+		update:
+		$lecturer_name = $conn->real_escape_string($_POST['lecturer_name']);
+		$mod_on = date('Y-m-d H:i:s');
+
+		$sql = 'SELECT lecturer_id, log_status FROM lecturers WHERE lecturer_id = ?'; // Check if user doesn't login for the first time
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param('s', $current_lecturer_id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$row = $result->fetch_assoc();
+
+		if ($row['log_status'] == 0)
+		{
+			$lecturer_password = password_hash($lecturer_id, PASSWORD_DEFAULT);
+			$q1 = 'UPDATE lecturers SET lecturer_id = ?, lecturer_name = ?, lecturer_password = ? WHERE lecturer_id = ?';
+			$stmt = $conn->prepare($q1);
+			$stmt->bind_param('issi', $lecturer_id, $lecturer_name, $lecturer_password, $current_lecturer_id);
+
+			if (!$stmt->execute())
+			{
+				$msg = $errorMsg;
+			}
+		}
+		else
+		{
+			$q1 = 'UPDATE lecturers SET lecturer_id = ?, lecturer_name = ? WHERE lecturer_id = ?';
+			$stmt = $conn->prepare($q1);
+			$stmt->bind_param('isi', $lecturer_id, $lecturer_name, $current_lecturer_id);
+
+			if (!$stmt->execute())
+			{
+				die($conn->error);
+			}
+		}
+		
+		$q2 = 'UPDATE adm_lect SET admin_id = ?, modified_on = ? WHERE lecturer_id = ?'; // Update to adm_lect table
+		$stmt = $conn->prepare($q2);
+		$stmt->bind_param('isi', $session_id, $mod_on, $lecturer_id);
+
+		if ($stmt->execute())
+		{
+				$msg = $updateMsg;
+		}
+		else
+		{
+			die($conn->error);
+		}
 	}
 }
 
@@ -112,7 +142,7 @@ if (isset($_POST['delete'])) // Delete data
 {
 	$lecturer_id = $_POST['lect_id'];
 
-	$sql = 'SELECT subject_code FROM workloads WHERE lecturer_id = ?';
+	$sql = 'SELECT subject_code FROM workloads WHERE lecturer_id = ?'; // Check if lecturer has assigned subject(s)
 
 	$stmt = $conn->prepare($sql);
 	$stmt->bind_param('i', $lecturer_id);
@@ -121,7 +151,7 @@ if (isset($_POST['delete'])) // Delete data
 		$result = $stmt->get_result();
 		if ($result->num_rows > 0)
 		{
-			$msg = '<p style="color: red;">*ERROR! This lecturer has assigned with subject(s)!</p>';
+			$msg = $usedMsg;
 		}
 		else
 		{
@@ -131,11 +161,11 @@ if (isset($_POST['delete'])) // Delete data
 			
 			if ($stmt->execute())
 			{
-				$msg = '<p style="color: green;">*Data is successfully deleted!</p>';
+				$msg = $deleteMsg;
 			}
 			else
 			{
-				$msg = "<p style='color: red;'>*ERROR! $conn->error</p>";
+				die($conn->error);
 			}
 		}
 	}
@@ -164,6 +194,7 @@ if (isset($_POST['delete'])) // Delete data
 		</div>
 		<p>Current session: <?php echo $session_id.", ".$session_name ?></p>
 		<br>
+		<?php echo $msg; ?>
 		<br>
 		<table class="w3-table w3-bordered">
 			<tr>
@@ -188,9 +219,9 @@ if (isset($_POST['delete'])) // Delete data
 							<td><?php echo $row['lecturer_name']; ?></td>
 							<td><?php echo $row['admin_name']; ?></td>
 							<td><?php $date = $row['modified_on'];
-							echo date("j/n/Y g:i:s A", strtotime($date)); ?></td>
-							<td><button onclick="onUpdate(<?php echo $row['lecturer_id']; ?>, '<?php echo $row['lecturer_name']; ?>')">Update</button></td>
-							<td><button onclick="onDelete('<?php echo $row['lecturer_id']; ?>', '<?php echo $row['lecturer_name']; ?>')">Delete</button></td>				
+							echo date("j/n/Y<\b\\r>g:i:s A", strtotime($date)); ?></td>
+							<td><button class="w3-button w3-round w3-light-grey" onclick="onUpdate(<?php echo $row['lecturer_id']; ?>, '<?php echo $row['lecturer_name']; ?>')">Update</button></td>
+							<td><button class="w3-button w3-round w3-light-grey" onclick="onDelete('<?php echo $row['lecturer_id']; ?>', '<?php echo $row['lecturer_name']; ?>')">Delete</button></td>				
 							</tr>
 							<?php
 						}
@@ -205,14 +236,13 @@ if (isset($_POST['delete'])) // Delete data
 				<form action="" method="POST">
 					<td><input class="w3-input" type="text" name="lect_id" placeholder="Add lecturer ID"/></td>
 					<td><input class="w3-input" type="text" name="lect_name" placeholder="Add lecturer name" /></td>
-					<td><input class="w3-button w3-light-grey w3-border " type="submit" name="add" value="Add" /></td>
+					<td><input class="w3-button w3-round w3-light-grey" type="submit" name="add" value="Add" /></td>
 					<td></td>
 					<td></td>
 					<td></td>
 				</form>
 			</tr>
 		</table>
-		<p><?php echo $msg; ?></p>
 	</div>
 	<!-- Update popup box -->
 	<div id="onUpdate" class="w3-modal">
@@ -230,7 +260,7 @@ if (isset($_POST['delete'])) // Delete data
 					<button class="w3-button w3-block w3-dark-grey w3-section w3-padding" type="submit" name="update">Save</button>
 				</div>
 			</form>
-			<div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+			<div class="w3-container w3-border-top w3-padding-16">
 				<button onclick="document.getElementById('onUpdate').style.display='none'" type="button" class="w3-button w3-red w3-right w3-padding">Cancel</button>
 			</div>
 		</div>

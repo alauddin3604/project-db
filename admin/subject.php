@@ -1,7 +1,9 @@
 <?php
 require '../connection.php';
+include '../message.php';
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
+$nene = 'nene';
 $msg = '';
 
 if (isset($_SESSION['admin_id']))
@@ -24,84 +26,99 @@ else
 
 if (isset($_POST['add'])) // Add new data
 {
-	$sub_code = $conn->real_escape_string($_POST['sub_code']);
-
-	$sql = 'SELECT * FROM subjects WHERE subject_code=?';
-	$stmt = $conn->prepare($sql);
-	$stmt->bind_param('s', $sub_code);
-	$stmt->execute();
-	$result = $stmt->get_result();
-
-	if ($result->num_rows > 0)
+	if (empty($_POST['sub_code']) || empty($_POST['sub_name']))
 	{
-		$msg = '<p style="color: red;">*ERROR! Duplicate subject code!</p>';
+		$msg = $validationMsg; // Return error
 	}
 	else
 	{
-		$sub_name = $_POST['sub_name'];
+		$sub_code = $conn->real_escape_string($_POST['sub_code']);
 
-		$date = date('Y-m-d H:i:s');
+		$sql = 'SELECT * FROM subjects WHERE subject_code=?';
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param('s', $sub_code);
+		$stmt->execute();
+		$result = $stmt->get_result();
 
-		$sql1 = 'INSERT INTO subjects VALUES(?, ?)';
-		$stmt = $conn->prepare($sql1);
-		$stmt->bind_param('ss', $sub_code, $sub_name);
-		
-		if ($stmt->execute())
+		if ($result->num_rows > 0)
 		{
-			$sql2 = "INSERT INTO adm_sub VALUES(?,?,?)";
-			$stmt = $conn->prepare($sql2);
-			$stmt->bind_param('iss', $session_id, $sub_code, $date);
+			$msg = '<p style="color: red;">*ERROR! Duplicate subject code!</p>';
+		}
+		else
+		{
+			$sub_name = $_POST['sub_name'];
+
+			$date = date('Y-m-d H:i:s');
+
+			$sql1 = 'INSERT INTO subjects VALUES(?, ?)';
+			$stmt = $conn->prepare($sql1);
+			$stmt->bind_param('ss', $sub_code, $sub_name);
+			
 			if ($stmt->execute())
 			{
-				$msg = '<p style="color: green;">The subject is successfully registered!</p>';
+				$sql2 = "INSERT INTO adm_sub VALUES(?,?,?)";
+				$stmt = $conn->prepare($sql2);
+				$stmt->bind_param('iss', $session_id, $sub_code, $date);
+				if ($stmt->execute())
+				{
+					$msg = '<p style="color: green;">The subject is successfully registered!</p>';
+				}
+				else
+				{
+					$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
+				}
 			}
 			else
 			{
 				$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
 			}
 		}
-		else
-		{
-			$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
-		}
 	}	
 }
 
 if(isset($_POST['update'])) // Update data
 {
-	$sub_code = $conn->real_escape_string($_POST['sub_code']);
-	$sub_name = $conn->real_escape_string($_POST['sub_name']);
-	$curr_sub_code = htmlspecialchars($_POST['curr_sub_code']);
+	$subject_code = $conn->real_escape_string($_POST['sub_code']);
+	$current_subject_code = htmlspecialchars($_POST['curr_sub_code']);
 
-	$mod_on = date('Y-m-d H:i:s');
-
-	$q1 = 'UPDATE subjects
-			SET subject_code=?, subject_name=?
-			WHERE subject_code=?';
-
-	$q2 = 'UPDATE adm_sub 
-			SET admin_id=?, modified_on=?
-			WHERE subject_code=?';
-
-	$stmt = $conn->prepare($q1);
-	$stmt->bind_param('sss', $sub_code, $sub_name, $curr_sub_code);
-	
-	if(!$stmt->execute())
+	if ($current_subject_code != $subject_code)
 	{
-		$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
+		# Check if entered ID is duplicate
+		$sql = "SELECT subject_code FROM subjects WHERE subject_code = ?";
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param('s', $subject_code);
+		$stmt->execute();
+		$result = $stmt->get_result();
+
+		if ($result->num_rows > 0)
+			$msg = $duplicateMsg; // Return error
+		else
+			goto update;
 	}
 	else
 	{
-		$stmt = $conn->prepare($q2);
-		$stmt->bind_param('iss', $session_id, $mod_on, $sub_code);
-		if ($stmt->execute())
+		update:
+		$subject_name = $conn->real_escape_string($_POST['sub_name']);
+		$mod_on = date('Y-m-d H:i:s');
+
+		$q1 = 'UPDATE subjects SET subject_code=?, subject_name=? WHERE subject_code=?';
+
+		$q2 = 'UPDATE adm_sub SET admin_id=?, modified_on=? WHERE subject_code=?';
+
+		$stmt = $conn->prepare($q1);
+		$stmt->bind_param('sss', $subject_code, $subject_name, $current_subject_code);
+		
+		if($stmt->execute())
 		{
-			$msg = '<p style="color: green;">Data is updated successfully.</p>';
+			$stmt = $conn->prepare($q2);
+			$stmt->bind_param('iss', $session_id, $mod_on, $subject_code);
+			if ($stmt->execute())
+				$msg = $updateMsg;
+			else
+				die($conn->error);
 		}
 		else
-		{
-			$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
-		}	
+			die($conn->error);
 	}
 }
 
@@ -117,7 +134,7 @@ if (isset($_POST['delete'])) // Delete data
 		$result = $stmt->get_result();
 		if ($result->num_rows > 0)
 		{
-			$msg = '<p style="color: red;">*ERROR! The subject has assigned to lecturer(s).</p>';
+			$msg = $subjectOwnerMsg;
 		}
 		else
 		{
@@ -127,11 +144,11 @@ if (isset($_POST['delete'])) // Delete data
 
 			if ($stmt->execute())
 			{
-				$msg = '<p style="color: green;">Data is deleted successfully.</p>';
+				$msg = $deleteMsg;
 			}
 			else
 			{
-				$msg = '<p style="color: red;">*ERROR! '.$conn->error.'</p>';
+				die($conn->error);
 			}
 		}
 	}
@@ -160,6 +177,7 @@ if (isset($_POST['delete'])) // Delete data
 		</div>
 		<p>Current session: <?php echo $session_id.", ".$session_name ?></p>
 		<br>
+		<?php echo $msg ?>
 		<br>
 		<table class="w3-table w3-bordered">
 			<tr>
@@ -181,13 +199,13 @@ if (isset($_POST['delete'])) // Delete data
 					if($result->num_rows > 0){
 						while ($row = $result->fetch_assoc()) { ?>
 							<tr style="text-align: center">
-							<td><?php echo $row['subject_code']; ?></td>
-							<td><?php echo $row['subject_name']; ?></td>
-							<td><?php echo $row['admin_name']; ?></td>
+							<td><?php echo $row['subject_code'] ?></td>
+							<td><?php echo $row['subject_name'] ?></td>
+							<td><?php echo $row['admin_name'] ?></td>
 							<td><?php $date = $row['modified_on'];
-							echo date("j/n/Y g:i:s A", strtotime($date)); ?></td>
-							<td><button onclick="onUpdate('<?php echo $row['subject_code']; ?>', '<?php echo $row['subject_name']; ?>')">Update</button></td>
-							<td><button onclick="onDelete('<?php echo $row['subject_code']; ?>', '<?php echo $row['subject_name']; ?>')">Delete</button></td>
+							echo date("j/n/Y<\b\\r>g:i:s A", strtotime($date)); ?></td>
+							<td><button class="w3-button w3-round w3-light-grey" onclick="onUpdate('<?php echo $row['subject_code'] ?>', '<?php echo $row['subject_name'] ?>')">Update</button></td>
+							<td><button class="w3-button w3-round w3-light-grey" onclick="onDelete('<?php echo $row['subject_code'] ?>', '<?php echo $row['subject_name'] ?>')">Delete</button></td>
 							</tr>
 							<?php
 						}
@@ -202,14 +220,13 @@ if (isset($_POST['delete'])) // Delete data
 				<form action="" method="POST">
 					<td><input class="w3-input" type="text" name="sub_code" placeholder="Add subject code"/></td>
 					<td><input class="w3-input" type="text" name="sub_name" placeholder="Add subject name" /></td>
-					<td><input class="w3-button w3-light-grey w3-border" type="submit" name="add" value="Add"></td>
+					<td><input class="w3-button w3-round w3-light-grey" type="submit" name="add" value="Add"></td>
 					<td></td>
 					<td></td>
 					<td></td>
 				</form>
 			</tr>
 		</table>
-		<p><?php echo $msg; ?></p>
 	</div>
 	<!-- Update popup box -->
 	<div id="onUpdate" class="w3-modal">
@@ -227,7 +244,7 @@ if (isset($_POST['delete'])) // Delete data
 					<button class="w3-button w3-block w3-dark-grey w3-section w3-padding" type="submit" name="update">Save</button>
 				</div>
 			</form>
-			<div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+			<div class="w3-container w3-border-top w3-padding-16">
 				<button onclick="document.getElementById('onUpdate').style.display='none'" type="button" class="w3-button w3-red w3-right w3-padding">Cancel</button>
 			</div>
 		</div>

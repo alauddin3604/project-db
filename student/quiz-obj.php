@@ -15,6 +15,8 @@ else
 if (isset($_SESSION['workload_id']))
 {
 	$workload_id = $_SESSION['workload_id'];
+	
+	// To get the subject's name
 	$sql = 'SELECT w.*, s.*
 			FROM workloads w
 			INNER JOIN subjects s ON s.subject_code = w.subject_code
@@ -30,16 +32,15 @@ if (isset($_SESSION['workload_id']))
 			$subject_code = $row['subject_code'];
 			$subject_name = $row['subject_name'];
 		}
-		else
-			die("Nenepok");
 	}
 	else
 	{
 		die($conn->error);
 	}
 
+	// To list the questions
 	$sql = 'SELECT q.* 
-			FROM quiz_truefalse q
+			FROM quiz_objective q
 			WHERE workload_id = ?';
 	$stmt = $conn->prepare($sql);
 	$stmt->bind_param('i', $workload_id);
@@ -49,12 +50,10 @@ if (isset($_SESSION['workload_id']))
 
 }
 else
-	header('location: home.php');
-
-if (isset($_POST['submit']))
 {
-	echo 'hello world';
+	header('location: home.php');
 }
+	
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -76,35 +75,36 @@ if (isset($_POST['submit']))
 		<table class="w3-table w3-bordered">
 			<tr>
 				<th>No</th>
-				<th style="width:800px">Question</th>
-				<th>True or False</th>
+				<th>Question</th>
+				<th>Option A</th>
+				<th>Option B</th>
+				<th>Option C</th>
+				<th>Option D</th>
+				<th>Your Answer</th>
 			</tr>
 			<?php
 			$i = 1;
-			if($result->num_rows > 0) {
-				while ($row = $result->fetch_assoc()) { 
-					?>
-					
+			if($result->num_rows > 0)
+			{
+				while ($row = $result->fetch_assoc())
+				{ ?>
 					<tr>
-					<form action="quiz-tf-submit.php" method="POST">				
-					<td><?php echo $i; ?></td>
-					<td><?php echo $row['question']; ?></td>
-					<td>
-						<input class="w3-radio" type="radio" name="answer[<?php echo $i; ?>]" value="true">
-						<label>True</label><br>
-						<input class="w3-radio" type="radio" name="answer[<?php echo $i; ?>]" value="false">
-						<label>False</label>
-					</td>
-					
+					<form action="quiz-obj-submit.php" method="POST">				
+					<td><?php echo $i ?></td>
+					<td><?php echo $row['question'] ?></td>
+					<td><?php echo $row['option_a'] ?></td>
+					<td><?php echo $row['option_b'] ?></td>
+					<td><?php echo $row['option_c'] ?></td>
+					<td><?php echo $row['option_d'] ?></td>
+					<td><input class="w3-input" type="text" name="answer[<?php echo $i ?>]"></td>	
 					</tr>
 					<?php
 					$i++;
 				}
-			}
-			?>
+			} ?>
 		</table>
 		<br>
-		<input class="w3-button w3-light-grey w3-right" type="submit" name="submit" onclick="return confirm('Are you sure you want to submit your answer?')" value="Submit">
+		<input class="w3-button w3-light-grey w3-right" type="submit" name="submit" onclick="return confirm('Are you sure you want to submit your answers?')" value="Submit">
 		</form>
 	</div>
 </body>

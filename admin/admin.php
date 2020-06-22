@@ -1,25 +1,24 @@
 <?php
 session_start();
 require '../connection.php';
+include '../message.php';
 date_default_timezone_set('Asia/Kuala_Lumpur');
 $msg = '';
 
 # Check session
 if (!isset($_SESSION['admin_id']))
-{
 	header('location: ../index.php');
-}
 	
 if(isset($_POST['add'])) // Add new data
 {
 	if (empty($_POST['admin_id']) || empty($_POST['admin_name']))
 	{
-		$msg = '<p class="error">*Please fill all the fields!</p>';
+		$msg = $validationMsg; // Return error
 	}
 	else
 	{
 		$admin_id = $conn->real_escape_string($_POST['admin_id']);
-		$admin_name = strtoupper($conn->real_escape_string($_POST['admin_name']));
+		$admin_name = strtoupper($conn->real_escape_string($_POST['admin_name'])); // Convert to uppercase
 
 		$sql = 'SELECT admin_id FROM admins WHERE admin_id = ?';
 		$stmt = $conn->prepare($sql);
@@ -27,9 +26,7 @@ if(isset($_POST['add'])) // Add new data
 		$stmt->execute();
 		$result = $stmt->get_result();
 		if ($result->num_rows > 0)
-		{
-			$msg = '<p class="error">*ERROR! The entered ID has already registered</p>';
-		}
+			$msg = $duplicateMsg; // Return error
 		else
 		{
 			$log_status = 0;
@@ -38,15 +35,10 @@ if(isset($_POST['add'])) // Add new data
 			$stmt = $conn->prepare($sql);
 			$stmt->bind_param('issi', $admin_id, $admin_name, $admin_password, $log_status);
 			if ($stmt->execute())
-			{
-				$msg = '<p class="success">New data is successfully recorded.</p>';
-			}
+				$msg = $addMsg; // Return success
 			else
-			{
-				$msg = '<p class="error">' . $conn->error . '</p>';
-			}
+				$msg = $errorMsg; // Return error
 		}
-		
 	}
 }
 
@@ -63,12 +55,10 @@ if (isset($_POST['update'])) // Update data
 	{
 		if ($_SESSION['admin_id'] == $current_admin_id)
 			$_SESSION['admin_id'] = $admin_id;
-		$msg = '<p class="success">Data is updated successfully.</p>';
+		$msg = $updateMsg; // Return success
 	}
 	else
-	{
-		$msg = '<p class="error">' . $conn->error . '</p>';
-	}
+		$msg = $errorMsg;
 }
 
 if (isset($_POST['delete'])) // Delete data
@@ -85,9 +75,7 @@ if (isset($_POST['delete'])) // Delete data
 	$result = $stmt->get_result();
 		
 	if ($result->num_rows > 0)
-	{
-		$msg = '<p class="error">The admin data is currently used in other tables.</p>';
-	}
+		$msg = $usedMsg;
 	else
 	{
 		$sql = 'DELETE FROM admins WHERE admin_id = ?';
@@ -95,13 +83,9 @@ if (isset($_POST['delete'])) // Delete data
 		$stmt = $conn->prepare($sql);
 		$stmt->bind_param('i', $admin_id);
 		if ($stmt->execute())
-		{
-			$msg = '<p class="success">Data is deleted successfully.</p>';
-		}
+			$msg = $deleteMsg;
 		else
-		{
-			$msg = '<p class="error">' . $conn->error . '</p>';
-		}
+			$msg = $errorMsg;
 	}
 }
 
@@ -151,6 +135,7 @@ else
 		</div>
 		<p>Current session: <?php echo $_SESSION['admin_id'].", ".$session_name ?></p>
 		<br>
+		<?php echo $msg; ?>
 		<br>
 		<table class="w3-table w3-bordered">
 			<tr>
@@ -169,9 +154,9 @@ else
 					
 					<td><?php echo $row['admin_id']; ?></td>
 					<td><?php echo $row['admin_name']; ?></td>
-					<td><button onclick="onUpdate(<?php echo $row['admin_id']; ?>, '<?php echo $row['admin_name']; ?>')">Update</button></td>
-					<?php if ($row['admin_id'] != $_SESSION['admin_id']) { ?>
-					<td><button onclick="onDelete('<?php echo $row['admin_id']; ?>', '<?php echo $row['admin_name']; ?>')">Delete</button></td>
+					<td><button class="w3-button w3-round w3-light-grey" onclick="onUpdate(<?php echo $row['admin_id']; ?>, '<?php echo $row['admin_name']; ?>')">Update</button></td>
+					<?php if ($row['admin_id'] != $_SESSION['admin_id']) { ?> <!-- The admin cannot delete their own ID -->
+					<td><button class="w3-button w3-round w3-light-grey" onclick="onDelete('<?php echo $row['admin_id']; ?>', '<?php echo $row['admin_name']; ?>')">Delete</button></td>
 					<?php } else { echo "<td></td>"; }?>
 					</tr>
 					<?php
@@ -181,12 +166,11 @@ else
 				<form action="" method="POST">
 					<td><input class="w3-input" type="text" name="admin_id" placeholder="Admin ID" /></td>
 					<td><input class="w3-input" type="text" name="admin_name" placeholder="Admin name" /></td>
-					<td><input class="w3-button w3-light-grey w3-border " type="submit" name="add" value="Add" /></td>
+					<td><input class="w3-button w3-round w3-light-grey" type="submit" name="add" value="Add" /></td>
 					<td></td>
 				</form>
 			</tr>		
 		</table>
-		<?php echo $msg; ?>
 	</div>
 	<!-- Update popup box -->
 	<div id="onUpdate" class="w3-modal">

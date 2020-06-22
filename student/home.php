@@ -1,6 +1,8 @@
 <?php
 session_start();
 require '../connection.php';
+include '../message.php';
+$msg = '';
 
 if (isset($_SESSION['student_id']))
 {
@@ -24,14 +26,50 @@ else
 }
 
 # SQL to list registered subjects
-$sql = "SELECT stud_sub.*, sb.*, l.lecturer_id, l.lecturer_name, w.lecturer_id, w.subject_code
+$sql = "SELECT stud_sub.*, sb.subject_name, l.lecturer_name, w.workload_id, t.mark AS mark_tf, o.mark AS mark_obj
 		FROM stud_sub
-		INNER JOIN workloads w ON (stud_sub.subject_code = w.subject_code) AND (stud_sub.lecturer_id = w.lecturer_id)
+		JOIN workloads w ON (stud_sub.workload_id = w.workload_id)
+		LEFT JOIN mark_truefalse t ON (stud_sub.workload_id = t.workload_id) AND (stud_sub.student_id = t.student_id)
+		LEFT JOIN mark_objective o ON (stud_sub.workload_id = o.workload_id) AND (stud_sub.student_id = o.student_id)
 		INNER JOIN subjects sb ON (w.subject_code = sb.subject_code)
 		INNER JOIN lecturers l ON (w.lecturer_id = l.lecturer_id)
-		WHERE stud_sub.student_id = '$student_id'";
+		WHERE stud_sub.student_id = ?";
 
-if(!$result = $conn->query($sql)) die($conn->error); 
+$stmt = $conn->prepare($sql);
+$stmt->bind_param('s', $student_id);
+$stmt->execute();
+$resultList = $stmt->get_result();
+
+if (isset($_POST['view']))
+{
+	if (isset($_POST['mark-tf']))
+	{
+		if ($_POST['mark-tf'] == null || $_POST['mark-tf'] == 0) // If mark is 0 or haven't take the quiz yet
+		{
+			$_SESSION['workload_id'] = $_POST['workload_id'];
+			header('location: quiz-tf.php');
+		}
+		else
+		{
+			$msg = $alreadyTookQuizMsg;
+			unset($_POST);
+		}
+	}
+	
+	if (isset($_POST['mark-obj']))
+	{
+		if ($_POST['mark-obj'] == null || $_POST['mark-obj'] == 0)
+		{
+			$_SESSION['workload_id'] = $_POST['workload_id'];
+			header('location: quiz-obj.php');
+		}
+		else
+		{
+			$msg = $alreadyTookQuizMsg;
+		}
+	}
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -50,6 +88,7 @@ if(!$result = $conn->query($sql)) die($conn->error);
 		</div>
 		<p>Current Session: <?php echo $student_id . ', '.$student_name; ?></p>
 		<h4>Subject list</h4>
+		<?php echo $msg; ?>
 		<table class="w3-table w3-bordered">
 		<tr>
 			<th>No</th>
@@ -57,20 +96,28 @@ if(!$result = $conn->query($sql)) die($conn->error);
 			<th>Subject</th>
 			<th>Mark T/F</th>
 			<th>Quiz T/F</th>
-			<th>Mark Subjective</th>
-			<th>Quiz Subjective</th>
+			<th>Mark<br>Objective</th>
+			<th>Quiz Objective</th>
 		</tr>
 		<?php
 			$i = 1;
-			foreach ($result as $row) { ?>
+			foreach ($resultList as $row) { ?>
 				<tr>
 				<td><?php echo $i; ?></td>
 				<td><?php echo $row['lecturer_name']; ?></td>
 				<td><?php echo $row['subject_name']; ?></td>
-				<td></td>
-				<td><a href="quiz-tf.php?q=<?php echo $row['subject_code']; ?>"><button>View</button></a></td>
-				<td></td>
-				<td><a href="quiz-subjective.php?q=<?php echo $row['subject_code']; ?>"><button>View</button></a></td>
+				<td><?php echo $row['mark_tf'] ?></td>
+				<form action="" method="POST">
+					<input type="text" name="mark-tf" value="<?php echo $row['mark_tf']; ?>" hidden>
+					<input type="text" name="workload_id" value="<?php echo $row['workload_id']; ?>" hidden>
+					<td><button class="w3-button w3-round w3-light-grey" type="submit" name="view">View</button></td>
+				</form>
+				<td><?php echo $row['mark_obj'] ?></td>
+				<form action="" method="POST">
+					<input type="text" name="mark-obj" value="<?php echo $row['mark_obj'] ?>" hidden>
+					<input type="text" name="workload_id" value="<?php echo $row['workload_id'] ?>" hidden>
+					<td><button class="w3-button w3-round w3-light-grey" type="submit" name="view">View</button></td>
+				</form>		
 				</tr>
 			<?php
 			$i++;

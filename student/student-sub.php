@@ -26,13 +26,23 @@ else
 
 if (isset($_POST['register'])) // Student registers subject
 {
-	$subject_code = $_POST['subject_code'];
 	$lecturer_id = $_POST['lecturer_id'];
+	$subject_code = $_POST['subject_code'];
 
-	$sql = 'INSERT INTO stud_sub VALUES (?,?,?)';
-
+	$q = 'SELECT workload_id FROM workloads WHERE lecturer_id = ? AND subject_code = ?';
+	$stmt = $conn->prepare($q);
+	$stmt->bind_param('is', $lecturer_id, $subject_code);
+	if (!$stmt->execute())
+		die($conn->error);
+	else
+	{
+		$result = $stmt->get_result();
+		$row = $result->fetch_assoc();
+		$workload_id = $row['workload_id'];
+	}
+	$sql = 'INSERT INTO stud_sub (student_id, workload_id) VALUES (?, ?)';
 	$stmt = $conn->prepare($sql);
-	$stmt->bind_param('ssi', $student_id, $subject_code, $lecturer_id);
+	$stmt->bind_param('si', $student_id, $workload_id);
 	if (!$stmt->execute())
 	{
 		$msg = '<p class="error">*ERROR! '.$conn->error.'</p>';
@@ -97,7 +107,10 @@ if (isset($_POST['register'])) // Student registers subject
 							<td> <!-- Display message if student has registered the subject -->
 								<?php 
 								$sub = $row['subject_code'];
-								$sql2 = 'SELECT * FROM stud_sub WHERE student_id = ? AND subject_code = ?';
+								$sql2 = 'SELECT * FROM stud_sub
+										 INNER JOIN workloads w ON w.workload_id = stud_sub.workload_id
+										 INNER JOIN subjects s ON s.subject_code = w.subject_code
+										 WHERE student_id = ? AND w.subject_code = ?';
 								$stmt2 = $conn->prepare($sql2);
 								$stmt2->bind_param('ss', $student_id, $sub);
 								if (!$stmt2->execute()) die($conn->error);
@@ -110,7 +123,7 @@ if (isset($_POST['register'])) // Student registers subject
 								<form action="" method="POST">
 									<input type="text" name="subject_code" value="<?php echo $row['subject_code']?>" hidden>
 									<input type="text" name="lecturer_id" value="<?php echo $row['lecturer_id']?>" hidden>
-									<input class="w3-button w3-light-grey" type="submit" name="register" value="Register">
+									<input class="w3-button w3-round w3-light-grey" type="submit" name="register" value="Register">
 								</form>
 							</td>
 						</tr>

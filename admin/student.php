@@ -1,7 +1,10 @@
 <?php
 require '../connection.php';
+include '../message.php';
 session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
+
+// Messages to display
 $msg = '';
 
 if (isset($_SESSION['admin_id']))
@@ -36,7 +39,7 @@ if (isset($_POST['add'])) // Add new data
 
 	if ($result->num_rows > 0)
 	{
-		$msg = '<p class="error">*ERROR! The entered ID has already registered</p>'; // Return error
+		$msg = $duplicateMsg; // Return error
 	}
 	else
 	{
@@ -59,7 +62,7 @@ if (isset($_POST['add'])) // Add new data
 			$stmt->bind_param('iss', $session_id, $student_id, $mod_on);
 			if($stmt->execute())
 			{
-				$msg = '<p class="success">New data is successfully recorded.</p>';
+				$msg = $addMsg;
 			}
 			else
 			{
@@ -68,7 +71,7 @@ if (isset($_POST['add'])) // Add new data
 		}
 		else
 		{
-			$msg = '<p class="error">*2 '.$conn->error.'</p>';
+			$msg = $errorMsg;
 		}
 	}
 	
@@ -76,23 +79,32 @@ if (isset($_POST['add'])) // Add new data
 
 if(isset($_POST['update'])) // Update data
 {
+	$current_student_id = htmlspecialchars($_POST['current_student_id']);
 	$student_id = htmlspecialchars($_POST['student_id']);
-	# Check if entered ID is duplicate
-	// $sql = "SELECT Stud_ID FROM student WHERE Stud_ID = ?";
-	// $stmt = $conn->prepare($sql);
-	// $stmt->bind_param('s', $stud_id);
-	// $stmt->execute();
-	// $result = $stmt->get_result();
 
-	// if ($result->num_rows > 0)
-	// {
-	// 	$msg = '<p style="color: red">*ERROR! The entered ID has already registered</p>'; // Return error
-	// }
-	// else
-	// {
-		$current_student_id = htmlspecialchars($_POST['current_student_id']);
-		$student_name = htmlspecialchars($_POST['student_name']);
-		$student_email = $student_id.'@siswa.uthm.edu.my';
+	if ($current_student_id != $student_id)
+	{
+		# Check if entered ID is duplicate
+		$sql = "SELECT student_id FROM students WHERE student_id = ?";
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param('s', $student_id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+
+		if ($result->num_rows > 0)
+		{
+			$msg = $duplicateMsg; // Return error
+		}
+		else
+		{
+			goto update;
+		}
+	}
+	else
+	{
+		update:
+		$student_name = strtoupper(htmlspecialchars($_POST['student_name']));
+		$student_email = $student_id . '@siswa.uthm.edu.my';
 		$mod_on = date('Y-m-d H:i:s');
 
 		$sql = 'SELECT student_id, log_status FROM students WHERE student_id = ?';
@@ -102,7 +114,7 @@ if(isset($_POST['update'])) // Update data
 		$result = $stmt->get_result();
 		$row = $result->fetch_assoc();
 
-		if ($row['log_status'] == 0) // Check if student doesn't login for first time
+		if ($row['log_status'] == 0) // Check if user doesn't login for the first time
 		{
 			$student_password = password_hash($student_id, PASSWORD_DEFAULT);
 			$q1 = 'UPDATE students SET student_id=?, student_name=?, student_email=?, student_password=? WHERE student_id=?';
@@ -111,8 +123,7 @@ if(isset($_POST['update'])) // Update data
 
 			if (!$stmt->execute())
 			{
-				die($conn->error);
-				$msg = '<p class="error">*'.$conn->error.'</p>';
+				$msg = $errorMsg;
 			}
 		}
 		else
@@ -124,7 +135,6 @@ if(isset($_POST['update'])) // Update data
 			if (!$stmt->execute())
 			{
 				die($conn->error);
-				$msg = '<p class="error">*'.$conn->error.'</p>';
 			}
 		}
 
@@ -134,12 +144,13 @@ if(isset($_POST['update'])) // Update data
 
 		if ($stmt->execute())
 		{
-			$msg = '<p class="success">The data is successfully updated.</p>';
+			$msg = $updateMsg;
 		}
 		else
 		{
-			$msg = '<p class="error">*ERROR! '.$conn->error.'.</p>';
-		}	
+			$msg = $errorMsg;
+		}
+	}
 }
 
 if (isset($_POST['delete'])) // Delete student data
@@ -153,7 +164,7 @@ if (isset($_POST['delete'])) // Delete student data
 	$result = $stmt->get_result();
 	if ($result->num_rows > 0)
 	{
-		$msg = '<p class="error"">*ERROR! The student has already registered subject(s).</p>';
+		$msg = $studentMsg;
 	}
 	else
 	{
@@ -161,7 +172,7 @@ if (isset($_POST['delete'])) // Delete student data
 		$stmt->prepare($sql);
 		$stmt->bind_param('s', $student_id);
 		if ($stmt->execute()) {
-			$msg = '<p class="success">Data is deleted successfully.</p>';
+			$msg = $deleteMsg;
 		}
 		else {
 			$msg = '<p class="error">*ERROR! '.$conn->error.'';
@@ -192,6 +203,7 @@ if (isset($_POST['delete'])) // Delete student data
 		</div>
 		<p>Current session: <?php echo $session_id.", ".$session_name ?></p>
 		<br>
+		<?php echo $msg ?>
 		<br>
 		<table class="w3-table w3-bordered">
 			<tr>
@@ -221,10 +233,10 @@ if (isset($_POST['delete'])) // Delete student data
 					<td><?php echo $row['admin_name']; ?></td>
 					<td>
 						<?php $date = $row['modified_on'];
-						echo date("j/n/Y g:i:s A", strtotime($date)); ?>
+						echo date("j/n/Y<\b\\r>g:i:s A", strtotime($date)); ?>
 					</td>
-					<td><button onclick="onUpdate('<?php echo $row['student_id']; ?>', '<?php echo $row['student_name']; ?>')">Update</button></td>
-					<td><button onclick="onDelete('<?php echo $row['student_id']; ?>', '<?php echo $row['student_name']; ?>')">Delete</button></td>
+					<td><button class="w3-button w3-round w3-light-grey" onclick="onUpdate('<?php echo $row['student_id']; ?>', '<?php echo $row['student_name']; ?>')">Update</button></td>
+					<td><button class="w3-button w3-round w3-light-grey" onclick="onDelete('<?php echo $row['student_id']; ?>', '<?php echo $row['student_name']; ?>')">Delete</button></td>
 					</tr>
 					<?php
 				}
@@ -234,7 +246,7 @@ if (isset($_POST['delete'])) // Delete student data
 					<form action="" method="POST">
 						<td><input class="w3-input" type="text" name="student_id" placeholder="Add student ID"/></td>
 						<td><input class="w3-input" type="text" name="student_name" placeholder="Add student name" /></td>
-						<td><input class="w3-button w3-light-grey w3-border " type="submit" name="add" value="Add" /></td>
+						<td><input class="w3-button w3-round w3-light-grey" type="submit" name="add" value="Add" /></td>
 						<td></td>
 						<td></td>
 						<td></td>
@@ -243,7 +255,6 @@ if (isset($_POST['delete'])) // Delete student data
 				</tr>
 			</tbody>
 		</table>
-		<?php echo $msg; ?>
 	</div>
 	<!-- Update popup box -->
 	<div id="onUpdate" class="w3-modal">
@@ -261,7 +272,7 @@ if (isset($_POST['delete'])) // Delete student data
 					<button class="w3-button w3-block w3-dark-grey w3-section w3-padding" type="submit" name="update">Save</button>
 				</div>
 			</form>
-			<div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+			<div class="w3-container w3-border-top w3-padding-16">
 				<button onclick="document.getElementById('onUpdate').style.display='none'" type="button" class="w3-button w3-red w3-right w3-padding">Cancel</button>
 			</div>
 		</div>
