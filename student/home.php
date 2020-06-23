@@ -70,6 +70,9 @@ if (isset($_POST['view']))
 	}
 }
 
+if (isset($_GET['err']))
+	$msg = $alreadyTookQuizMsg;
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

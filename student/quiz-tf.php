@@ -51,10 +51,6 @@ if (isset($_SESSION['workload_id']))
 else
 	header('location: home.php');
 
-if (isset($_POST['submit']))
-{
-	echo 'hello world';
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -106,6 +102,10 @@ if (isset($_POST['submit']))
 		<br>
 		<input class="w3-button w3-light-grey w3-right" type="submit" name="submit" onclick="return confirm('Are you sure you want to submit your answer?')" value="Submit">
 		</form>
+		<?php
+		if (isset($_GET['mark']))
+			echo 'Thank you! Your mark is ' . $_GET['mark'];
+		?>
 	</div>
 </body>
 </html>

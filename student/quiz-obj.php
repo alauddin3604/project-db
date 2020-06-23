@@ -106,6 +106,10 @@ else
 		<br>
 		<input class="w3-button w3-light-grey w3-right" type="submit" name="submit" onclick="return confirm('Are you sure you want to submit your answers?')" value="Submit">
 		</form>
+		<?php
+		if (isset($_GET['mark']))
+			echo 'Thank you! Your mark is ' . $_GET['mark'];
+		?>
 	</div>
 </body>
 </html>
