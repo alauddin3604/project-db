@@ -26,12 +26,9 @@ if (isset($_SESSION['workload_id']))
 	if ($stmt->execute())
 	{
 		$result = $stmt->get_result();
-		if ($result->num_rows > 0)
-		{
-			$row = $result->fetch_assoc();
-			$subject_code = $row['subject_code'];
-			$subject_name = $row['subject_name'];
-		}
+		$row = $result->fetch_assoc();
+		$subject_code = $row['subject_code'];
+		$subject_name = $row['subject_name'];
 	}
 	else
 	{
@@ -44,10 +41,14 @@ if (isset($_SESSION['workload_id']))
 			WHERE workload_id = ?';
 	$stmt = $conn->prepare($sql);
 	$stmt->bind_param('i', $workload_id);
-	if (!$stmt->execute())
-		die('FAILED: '.$conn->error);
-	$result = $stmt->get_result();
-
+	if ($stmt->execute())
+	{
+		$result = $stmt->get_result();
+	}
+	else
+	{
+		die('FAILED: ' . $conn->error);
+	}	
 }
 else
 {
@@ -72,6 +73,7 @@ else
 		</div>
 		<p>Subject Name: <?php echo $subject_name; ?></p>
 		<p>Subject Code: <?php echo $subject_code; ?></p>
+		<form action="quiz-obj-submit.php" method="POST">
 		<table class="w3-table w3-bordered">
 			<tr>
 				<th>No</th>
@@ -88,8 +90,7 @@ else
 			{
 				while ($row = $result->fetch_assoc())
 				{ ?>
-					<tr>
-					<form action="quiz-obj-submit.php" method="POST">				
+					<tr>				
 					<td><?php echo $i ?></td>
 					<td><?php echo $row['question'] ?></td>
 					<td><?php echo $row['option_a'] ?></td>
@@ -104,7 +105,7 @@ else
 			} ?>
 		</table>
 		<br>
-		<input class="w3-button w3-light-grey w3-right" type="submit" name="submit" onclick="return confirm('Are you sure you want to submit your answers?')" value="Submit">
+		<input class="w3-button w3-round w3-light-grey w3-right" type="submit" name="submit" onclick="return confirm('Are you sure you want to submit your answers?')" value="Submit">
 		</form>
 		<?php
 		if (isset($_GET['mark']))

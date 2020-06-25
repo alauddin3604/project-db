@@ -4,31 +4,32 @@ require '../connection.php';
 include '../message.php';
 $msg = '';
 
+// Check user session
 if (isset($_SESSION['student_id']))
 {
 	$student_id = $_SESSION['student_id'];
 	$q = 'SELECT student_id, student_name FROM students WHERE student_id = ?';
 	$stmt = $conn->prepare($q);
 	$stmt->bind_param('s', $student_id);
-	if(!$stmt->execute())
-	{
-		echo $conn->error;
-	}
-	else
+	if($stmt->execute())
 	{
 		$row = $stmt->get_result()->fetch_assoc();
 		$student_name = $row['student_name'];
 	}
+	else
+	{
+		die($conn->error);
+	}
 }
 else
 {
-	header('location: ../index.php');
+	header('location: ../index.php'); /* head to home if no session is set */
 }
-
-# SQL to list registered subjects
+	
+// SQL to list registered subjects
 $sql = "SELECT stud_sub.*, sb.subject_name, l.lecturer_name, w.workload_id, t.mark AS mark_tf, o.mark AS mark_obj
 		FROM stud_sub
-		JOIN workloads w ON (stud_sub.workload_id = w.workload_id)
+		INNER JOIN workloads w ON (stud_sub.workload_id = w.workload_id)
 		LEFT JOIN mark_truefalse t ON (stud_sub.workload_id = t.workload_id) AND (stud_sub.student_id = t.student_id)
 		LEFT JOIN mark_objective o ON (stud_sub.workload_id = o.workload_id) AND (stud_sub.student_id = o.student_id)
 		INNER JOIN subjects sb ON (w.subject_code = sb.subject_code)
@@ -71,8 +72,10 @@ if (isset($_POST['view']))
 }
 
 if (isset($_GET['err']))
+{
 	$msg = $alreadyTookQuizMsg;
-
+}
+	
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -89,9 +92,9 @@ if (isset($_GET['err']))
 			<a href="student-sub.php" class="w3-bar-item w3-button w3-light-grey">Register Subject</a>
 			<a href="../logout.php" class="w3-bar-item w3-button w3-right">Log Out</a>
 		</div>
-		<p>Current Session: <?php echo $student_id . ', '.$student_name; ?></p>
+		<p>Current Session: <?php echo "$student_id, $student_name" ?></p>
 		<h4>Subject list</h4>
-		<?php echo $msg; ?>
+		<?php echo $msg ?>
 		<table class="w3-table w3-bordered">
 		<tr>
 			<th>No</th>
@@ -106,13 +109,13 @@ if (isset($_GET['err']))
 			$i = 1;
 			foreach ($resultList as $row) { ?>
 				<tr>
-				<td><?php echo $i; ?></td>
-				<td><?php echo $row['lecturer_name']; ?></td>
-				<td><?php echo $row['subject_name']; ?></td>
+				<td><?php echo $i ?></td>
+				<td><?php echo $row['lecturer_name'] ?></td>
+				<td><?php echo $row['subject_name'] ?></td>
 				<td><?php echo $row['mark_tf'] ?></td>
 				<form action="" method="POST">
-					<input type="text" name="mark-tf" value="<?php echo $row['mark_tf']; ?>" hidden>
-					<input type="text" name="workload_id" value="<?php echo $row['workload_id']; ?>" hidden>
+					<input type="text" name="mark-tf" value="<?php echo $row['mark_tf'] ?>" hidden>
+					<input type="text" name="workload_id" value="<?php echo $row['workload_id'] ?>" hidden>
 					<td><button class="w3-button w3-round w3-light-grey" type="submit" name="view">View</button></td>
 				</form>
 				<td><?php echo $row['mark_obj'] ?></td>
