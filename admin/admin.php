@@ -154,9 +154,9 @@ else
 					
 					<td><?php echo $row['admin_id']; ?></td>
 					<td><?php echo $row['admin_name']; ?></td>
-					<td><button class="w3-button w3-round w3-light-grey" onclick="onUpdate(<?php echo $row['admin_id']; ?>, '<?php echo $row['admin_name']; ?>')">Update</button></td>
+					<td><button class="w3-button w3-round w3-light-grey update" data-id="<?php echo $row['admin_id'] ?>" data-name="<?php echo $row['admin_name'] ?>">Update</button></td>
 					<?php if ($row['admin_id'] != $_SESSION['admin_id']) { ?> <!-- The admin cannot delete their own ID -->
-					<td><button class="w3-button w3-round w3-light-grey" onclick="onDelete('<?php echo $row['admin_id']; ?>', '<?php echo $row['admin_name']; ?>')">Delete</button></td>
+					<td><button class="w3-button w3-round w3-light-grey delete" data-id="<?php echo $row['admin_id'] ?>" data-name="<?php echo $row['admin_name'] ?>">Delete</button></td>
 					<?php } else { echo "<td></td>"; }?>
 					</tr>
 					<?php
@@ -213,21 +213,26 @@ else
 		</form>
 		</div>
 	</div>
+	<script src="../js/jquery-3.4.1.min.js"></script>
 	<script>
-		function onUpdate(adm_id, adm_name)
-		{
-			document.getElementById('onUpdate').style.display='block';
-			document.getElementById("curr_adm_id").value = adm_id;
-			document.getElementById("adm_id").value = adm_id;
-			document.getElementById("adm_name").value = adm_name;
-		}
+		$(document).ready(function () {
+			$('.update').on('click', function () {
+				var id = $(this).data('id');
+				var name = $(this).data('name');
+				$('#onUpdate').css('display', 'block');
+				$('#curr_adm_id').val(id);
+				$('#adm_id').val(id);
+				$('#adm_name').val(name);
+			});
 
-		function onDelete(adm_id, adm_name)
-		{
-			document.getElementById('onDelete').style.display='block';
-			document.getElementById("del_id").value = adm_id;
-			document.getElementById("del_name").value = adm_name;
-		}
+			$('.delete').click(function () {
+				var id = $(this).data('id');
+				var name = $(this).data('name');
+				$('#onDelete').css('display', 'block');
+				$('#del_id').val(id);
+				$('#del_name').val(name);
+			});
+		});
 	</script>
 </body>
 </html>
