@@ -86,7 +86,7 @@ else
 					<td>
 						<input class="w3-radio" type="radio" name="answer[<?php echo $i; ?>]" value="true">
 						<label>True</label><br>
-						<input class="w3-radio" type="radio" name="answer[<?php echo $i; ?>]" value="false">
+						<input class="w3-radio" type="radio" name="answer[<?php echo $i; ?>]" value="false" required>
 						<label>False</label>
 					</td>
 					
