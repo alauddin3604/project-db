@@ -220,8 +220,8 @@ if (isset($_POST['delete'])) // Delete data
 							<td><?php echo $row['admin_name']; ?></td>
 							<td><?php $date = $row['modified_on'];
 							echo date("j/n/Y<\b\\r>g:i:s A", strtotime($date)); ?></td>
-							<td><button class="w3-button w3-round w3-light-grey" onclick="onUpdate(<?php echo $row['lecturer_id']; ?>, '<?php echo $row['lecturer_name']; ?>')">Update</button></td>
-							<td><button class="w3-button w3-round w3-light-grey" onclick="onDelete('<?php echo $row['lecturer_id']; ?>', '<?php echo $row['lecturer_name']; ?>')">Delete</button></td>				
+							<td><button class="w3-button w3-round w3-light-grey update" data-id="<?php echo $row['lecturer_id'] ?>" data-name="<?php echo $row['lecturer_name'] ?>">Update</button></td>
+							<td><button class="w3-button w3-round w3-light-grey delete" data-id="<?php echo $row['lecturer_id'] ?>" data-name="<?php echo $row['lecturer_name'] ?>">Delete</button></td>				
 							</tr>
 							<?php
 						}
@@ -234,9 +234,9 @@ if (isset($_POST['delete'])) // Delete data
 			?>
 			<tr>
 				<form action="" method="POST">
-					<td><input class="w3-input" type="text" name="lect_id" placeholder="Add lecturer ID"/></td>
-					<td><input class="w3-input" type="text" name="lect_name" placeholder="Add lecturer name" /></td>
-					<td><input class="w3-button w3-round w3-light-grey" type="submit" name="add" value="Add" /></td>
+					<td><input class="w3-input" type="text" name="lect_id" placeholder="Add lecturer ID" required></td>
+					<td><input class="w3-input" type="text" name="lect_name" placeholder="Add lecturer name" required></td>
+					<td><input class="w3-button w3-round w3-light-grey" type="submit" name="add" value="Add" required></td>
 					<td></td>
 					<td></td>
 					<td></td>
@@ -248,7 +248,7 @@ if (isset($_POST['delete'])) // Delete data
 	<div id="onUpdate" class="w3-modal">
 		<div class="w3-modal-content w3-card-4" style="max-width:600px">
   			<div class="w3-center"><br>
-				<span onclick="document.getElementById('onUpdate').style.display='none'" class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
+				<span class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
 			</div>
 			<form class="w3-container" action="" method="POST">
 				<div class="w3-section">
@@ -261,7 +261,7 @@ if (isset($_POST['delete'])) // Delete data
 				</div>
 			</form>
 			<div class="w3-container w3-border-top w3-padding-16">
-				<button onclick="document.getElementById('onUpdate').style.display='none'" type="button" class="w3-button w3-red w3-right w3-padding">Cancel</button>
+				<button type="button" class="w3-button w3-red w3-right w3-padding cancel">Cancel</button>
 			</div>
 		</div>
 	</div>
@@ -269,7 +269,7 @@ if (isset($_POST['delete'])) // Delete data
 	<div id="onDelete" class="w3-modal">
 		<div class="w3-modal-content w3-card-4" style="max-width:600px">
 			<div class="w3-center"><br>
-				<span onclick="document.getElementById('onDelete').style.display='none'" class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
+				<span class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
 			</div>
 			<form class="w3-container" action="" method="POST">
 				<div class="w3-section">
@@ -281,24 +281,42 @@ if (isset($_POST['delete'])) // Delete data
 				</div>
 			
 				<div class="w3-container w3-border-top w3-padding-16">
-					<button onclick="document.getElementById('onDelete').style.display='none'" type="button" class="w3-button w3-red w3-right w3-padding">Cancel</button>
+					<button type="button" class="w3-button w3-red w3-right w3-padding cancel">Cancel</button>
 					<button class="w3-button w3-green w3-right w3-padding" type="submit" name="delete">Confirm</button>
 				</div>
 			</form>
 		</div>
 	</div>
+	<script src="../js/jquery-3.4.1.min.js"></script>
 	<script>
-		function onUpdate(lect_id, lect_name) {
-			document.getElementById('onUpdate').style.display='block';
-			document.getElementById('current_lecturer').value = lect_id;
-			document.getElementById("lect_id").value = lect_id;
-			document.getElementById("lect_name").value = lect_name;
-		}
-		function onDelete(lect_id, lect_name) {
-			document.getElementById('onDelete').style.display='block';
-			document.getElementById("del-lect_id").value = lect_id;
-			document.getElementById("del-lect_name").value = lect_name;
-		}
+		$(document).ready(function() {
+			$(".update").click(function() {
+				var id = $(this).data("id");
+				var name = $(this).data("name");
+				$("#onUpdate").css("display", "block");
+				$("#current_lecturer").val(id);
+				$("#lect_id").val(id);
+				$("#lect_name").val(name);
+			});
+
+			$(".delete").click(function() {
+				var id = $(this).data("id");
+				var name = $(this).data("name");
+				$('#onDelete').css('display', 'block');
+				$("#del-lect_id").val(id);
+				$("#del-lect_name").val(name);
+			});
+
+			$("span[title='Close Modal']").click(function() {
+				$("#onUpdate").css("display", "none");
+				$("#onDelete").css("display", "none");
+			});
+
+			$(".cancel").click(function() {
+				$("#onUpdate").css("display", "none");
+				$("#onDelete").css("display", "none");
+			});
+		});
 	</script>
 </body>
 </html>

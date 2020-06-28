@@ -92,12 +92,12 @@ if (isset($_SESSION['workload_id']) && isset($_SESSION['subject_code']))
 				{
 					echo '<tr>';
 					echo '<td>' . $i . '</td>';
-					echo '<td>' . $row['student_name'] . '</td>';
+					echo "<td>$row[student_name]</td>";
 					echo '<td>' . $row['student_id'] . '</td>';
-					if ($row['mark'] != null)
-						echo '<td>' . $row['mark'] . '/' . $fullMark . '</td>';
-					else
+					if (is_null($row['mark']))
 						echo '<td></td>';
+					else
+						echo "<td>$row[mark] / $fullMark</td>";
 					echo '</tr>';
 				}
 			}

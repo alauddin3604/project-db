@@ -16,7 +16,7 @@ else
 
 if (isset($_POST['submit']))
 {
-	/* Check if student has take that subject*/
+	/* Check if student has take that subject */
 	$sql = 'SELECT * FROM mark_objective WHERE student_id = ? AND workload_id = ?';
 	$stmt = $conn->prepare($sql);
 	$stmt->bind_param('si', $student_id, $workload_id);

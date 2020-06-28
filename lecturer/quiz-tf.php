@@ -2,6 +2,7 @@
 date_default_timezone_set('Asia/Kuala_Lumpur');
 session_start();
 require '../connection.php';
+include '../message.php';
 $msg = '';
 
 if (isset($_SESSION['lecturer_id']))
@@ -90,7 +91,7 @@ if (isset($_POST['delete']))
 	$stmt = $conn->prepare($sql);
 	$stmt->bind_param('i', $quizz_id);
 	if ($stmt->execute())
-		$msg = '<p class="success">Data is deleted successfully.</p>';
+		$msg = $deleteMsg;
 	else
 		$msg = '<p class="error">*ERROR! '.$conn->error.'</p>';
 }
@@ -189,8 +190,8 @@ else
 				<tr>
 					<form action="" method="POST">
 						<td></td>
-						<td><textarea class="w3-input" type="text" name="question" placeholder="Add question"></textarea></td>
-						<td><input class="w3-check" type="checkbox" id="answer" name="answer"><br><label for="answer">Tick if true</label></td>
+						<td><textarea class="w3-input" style="resize: none;" rows="3" type="text" name="question" placeholder="Add question" required></textarea></td>
+						<td><input class="w3-check" type="checkbox" id="answer" name="answer"><br><label for="answer"><i>Tick if true</i></label></td>
 						<td></td>
 						<td></td>
 						<td></td>

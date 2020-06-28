@@ -214,7 +214,7 @@ $result_list = $conn->query($sql);
 				<form action="" method="post">
 					<td></td>
 					<td>
-						<select class="w3-select" name="lecturer">
+						<select class="w3-select" name="lecturer" required>
 							<option value="" disabled selected>Choose lecturer</option>
 							<?php while($row1 = $res1->fetch_assoc()):;?>
 							<option value="<?php echo $row1['lecturer_id'];?>"><?php echo $row1['lecturer_name'];?></option>
@@ -222,7 +222,7 @@ $result_list = $conn->query($sql);
 						</select>
 					</td>
 					<td>
-						<select class="w3-select" name="subject">
+						<select class="w3-select" name="subject" required>
 							<option value="" disabled selected>Choose subject</option>
 							<?php while($row2 = $res2->fetch_array()):;?>
 							<option value="<?php echo $row2[0];?>"><?php echo $row2[1];?></option>
@@ -248,7 +248,7 @@ $result_list = $conn->query($sql);
 					<label><b>Lecturer</b></label>
 					<input class="w3-input w3-border w3-margin-bottom" type="text" id="prev_lect" readonly>
 					<label><b  id="prev_sub"></b></label>
-					<select class="w3-select w3-border" name="subject_code">
+					<select class="w3-select w3-border" name="subject_code" required>
 						<option value="" disabled selected>Choose subject</option>
 						<?php 
 						$res2->data_seek(0);

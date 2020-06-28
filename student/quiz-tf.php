@@ -15,6 +15,8 @@ else
 if (isset($_SESSION['workload_id']))
 {
 	$workload_id = $_SESSION['workload_id'];
+
+	// To get subject's name
 	$sql = 'SELECT w.*, s.*
 			FROM workloads w
 			INNER JOIN subjects s ON s.subject_code = w.subject_code
@@ -24,20 +26,16 @@ if (isset($_SESSION['workload_id']))
 	if ($stmt->execute())
 	{
 		$result = $stmt->get_result();
-		if ($result->num_rows > 0)
-		{
-			$row = $result->fetch_assoc();
-			$subject_code = $row['subject_code'];
-			$subject_name = $row['subject_name'];
-		}
-		else
-			die("Nenepok");
+		$row = $result->fetch_assoc();
+		$subject_code = $row['subject_code'];
+		$subject_name = $row['subject_name'];
 	}
 	else
 	{
 		die($conn->error);
 	}
 
+	// To list the questions
 	$sql = 'SELECT q.* 
 			FROM quiz_truefalse q
 			WHERE workload_id = ?';

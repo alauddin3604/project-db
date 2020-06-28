@@ -218,8 +218,8 @@ if (isset($_POST['delete'])) // Delete data
 			?>
 			<tr>
 				<form action="" method="POST">
-					<td><input class="w3-input" type="text" name="sub_code" placeholder="Add subject code"/></td>
-					<td><input class="w3-input" type="text" name="sub_name" placeholder="Add subject name" /></td>
+					<td><input class="w3-input" type="text" name="sub_code" placeholder="Add subject code" required></td>
+					<td><input class="w3-input" type="text" name="sub_name" placeholder="Add subject name" required></td>
 					<td><input class="w3-button w3-round w3-light-grey" type="submit" name="add" value="Add"></td>
 					<td></td>
 					<td></td>

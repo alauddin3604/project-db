@@ -7,10 +7,10 @@ require '../connection.php';
 if (!isset($_SESSION['student_id']))
 {
 	header('location: ../');
-}
+} 
 $student_id = $_SESSION['student_id'];
 $workload_id = $_SESSION['workload_id'];
-echo $student_id.'<br>';
+
 if (isset($_POST['submit']))
 {
 	/* Check if student has take that subject*/

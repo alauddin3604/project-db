@@ -166,7 +166,7 @@ else
 				<form action="" method="POST">
 					<td><input class="w3-input" type="text" name="admin_id" placeholder="Admin ID" /></td>
 					<td><input class="w3-input" type="text" name="admin_name" placeholder="Admin name" /></td>
-					<td><input class="w3-button w3-round w3-light-grey" type="submit" name="add" value="Add" /></td>
+					<td><input class="w3-button w3-round w3-light-grey" type="submit" id="btn-add" name="add" value="Add" /></td>
 					<td></td>
 				</form>
 			</tr>		
@@ -176,7 +176,7 @@ else
 	<div id="onUpdate" class="w3-modal">
 		<div class="w3-modal-content w3-card-4" style="max-width:400px">
 			<div class="w3-center"><br>
-				<span onclick="document.getElementById('onUpdate').style.display='none'" class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
+				<span class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
 			</div>
 			<form class="w3-container" action="" method="POST">
 				<div class="w3-section">
@@ -196,7 +196,7 @@ else
 	<div id="onDelete" class="w3-modal">
 		<div class="w3-modal-content w3-card-4" style="max-width:600px">
 			<div class="w3-center"><br>
-				<span onclick="document.getElementById('onDelete').style.display='none'" class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
+				<span class="w3-button w3-xlarge w3-transparent w3-display-topright" title="Close Modal">×</span>
 			</div>
 			<form class="w3-container" action="" method="POST">
 				<div class="w3-section">
@@ -215,22 +215,27 @@ else
 	</div>
 	<script src="../js/jquery-3.4.1.min.js"></script>
 	<script>
-		$(document).ready(function () {
-			$('.update').on('click', function () {
-				var id = $(this).data('id');
-				var name = $(this).data('name');
-				$('#onUpdate').css('display', 'block');
-				$('#curr_adm_id').val(id);
-				$('#adm_id').val(id);
-				$('#adm_name').val(name);
+		$(document).ready(function() {
+			$(".update").click(function() {
+				var id = $(this).data("id");
+				var name = $(this).data("name");
+				$("#onUpdate").css("display", "block");
+				$("#curr_adm_id").val(id);
+				$("#adm_id").val(id);
+				$("#adm_name").val(name);
 			});
 
-			$('.delete').click(function () {
+			$('.delete').click(function() {
 				var id = $(this).data('id');
 				var name = $(this).data('name');
 				$('#onDelete').css('display', 'block');
 				$('#del_id').val(id);
 				$('#del_name').val(name);
+			});
+
+			$("span[title='Close Modal']").click(function() {
+				$('#onUpdate').css('display', 'none');
+				$('#onDelete').css('display', 'none');
 			});
 		});
 	</script>

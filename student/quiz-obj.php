@@ -109,7 +109,7 @@ else
 		</form>
 		<?php
 		if (isset($_GET['mark']))
-			echo 'Thank you! Your mark is ' . $_GET['mark'];
+			echo "Thank you! Your mark is $_GET[mark]";
 		?>
 	</div>
 </body>
