@@ -1,7 +1,7 @@
 <?php
+session_start();
 require '../connection.php';
 include '../message.php';
-session_start();
 date_default_timezone_set('Asia/Kuala_Lumpur');
 
 // Messages to display
