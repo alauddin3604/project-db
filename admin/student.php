@@ -66,7 +66,7 @@ if (isset($_POST['add'])) // Add new data
 			}
 			else
 			{
-				$msg = '<p class="error">*1 '.$conn->error.'</p>';
+				$msg = $errorMsg;
 			}
 		}
 		else
