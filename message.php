@@ -83,3 +83,10 @@ class="w3-button w3-display-topright">&times;</span>
 <h3>Sorry!</h3>
 <p>You already took the quiz.</p>	
 </div>';
+
+$noQuizYetMsg = '<div class="w3-panel w3-orange w3-display-container">
+<span onclick="this.parentElement.style.display=\'none\'"
+class="w3-button w3-display-topright">&times;</span>
+<h3>Sorry!</h3>
+<p>The lecturer has not create the quiz yet.</p>	
+</div>';
