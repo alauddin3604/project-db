@@ -43,30 +43,61 @@ $resultList = $stmt->get_result();
 
 if (isset($_POST['view']))
 {
+	$workload_id = $_POST['workload_id'];
 	if (isset($_POST['mark-tf']))
 	{
-		if ($_POST['mark-tf'] == null || $_POST['mark-tf'] == 0) // If mark is 0 or haven't take the quiz yet
+		$sql = 'SELECT * FROM quiz_truefalse WHERE workload_id = ?';
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param('i', $workload_id);
+		if ($stmt->execute())
 		{
-			$_SESSION['workload_id'] = $_POST['workload_id'];
-			header('location: quiz-tf.php');
+			$result = $stmt->get_result();
+			if ($result->num_rows > 0)
+			{
+				if ($_POST['mark-tf'] == null || $_POST['mark-tf'] == 0) // If mark is 0 or haven't take the quiz yet
+				{
+					header('location: quiz-tf.php');
+				}
+				else
+				{
+					$msg = $alreadyTookQuizMsg;
+					unset($_POST);
+				}
+			}
+			else
+				$msg = $noQuizYetMsg;
 		}
 		else
 		{
-			$msg = $alreadyTookQuizMsg;
-			unset($_POST);
+			die($conn->error);
 		}
 	}
 	
 	if (isset($_POST['mark-obj']))
 	{
-		if ($_POST['mark-obj'] == null || $_POST['mark-obj'] == 0)
+		$sql = 'SELECT * FROM quiz_objective WHERE workload_id = ?';
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param('i', $workload_id);
+		if ($stmt->execute())
 		{
-			$_SESSION['workload_id'] = $_POST['workload_id'];
-			header('location: quiz-obj.php');
+			$result = $stmt->get_result();
+			if ($result->num_rows > 0)
+			{
+				if ($_POST['mark-obj'] == null || $_POST['mark-obj'] == 0)
+				{
+					header('location: quiz-obj.php');
+				}
+				else
+				{
+					$msg = $alreadyTookQuizMsg;
+				}
+			}
+			else
+				$msg = $noQuizYetMsg;
 		}
 		else
 		{
-			$msg = $alreadyTookQuizMsg;
+			die($conn->error);
 		}
 	}
 }
@@ -106,6 +137,7 @@ if (isset($_GET['err']))
 			<th>Quiz Objective</th>
 		</tr>
 		<?php
+			$_POST = array();
 			$i = 1;
 			foreach ($resultList as $row) { ?>
 				<tr>
